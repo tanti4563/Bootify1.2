@@ -67,10 +67,10 @@ namespace FerryBookingSystem.Models
 
         public int TotalNumber { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        
         public decimal TotalAmount { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        
         public decimal PaidAmount { get; set; }
 
         public int BoatId { get; set; }
@@ -142,7 +142,7 @@ namespace FerryBookingSystem.Models
 
         public int TicketPriceId { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+       
         public decimal PriceWithVAT { get; set; }
 
         public int No { get; set; }

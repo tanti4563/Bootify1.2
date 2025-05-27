@@ -116,34 +116,34 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="Passengers_@i__FullName">Full Name <span class="text-danger">*</span></label>
-                                    <input type="text" id="Passengers_@i__FullName" name="Passengers[@i].FullName" class="form-control" required />
+                                    <label for="Passengers_@(i)__FullName">Full Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="Passengers_@(i)__FullName" name="Passengers[@i].FullName" class="form-control" required />
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="Passengers_@i__IdNumber">ID/Passport Number <span class="text-danger">*</span></label>
-                                    <input type="text" id="Passengers_@i__IdNumber" name="Passengers[@i].IdNumber" class="form-control" required />
+                                    <label for="Passengers_@(i)__IdNumber">ID/Passport Number <span class="text-danger">*</span></label>
+                                    <input type="text" id="Passengers_@(i)__IdNumber" name="Passengers[@i].IdNumber" class="form-control" required />
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="Passengers_@i__DateOfBirth">Date of Birth <span class="text-danger">*</span></label>
-                                    <input type="date" id="Passengers_@i__DateOfBirth" name="Passengers[@i].DateOfBirth" class="form-control" required />
+                                    <label for="Passengers_@(i)__DateOfBirth">Date of Birth <span class="text-danger">*</span></label>
+                                    <input type="date" id="Passengers_@(i)__DateOfBirth" name="Passengers[@i].DateOfBirth" class="form-control" required />
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="Passengers_@i__PlaceOfBirth">Place of Birth <span class="text-danger">*</span></label>
-                                    <input type="text" id="Passengers_@i__PlaceOfBirth" name="Passengers[@i].PlaceOfBirth" class="form-control" required />
+                                    <label for="Passengers_@(i)__PlaceOfBirth">Place of Birth <span class="text-danger">*</span></label>
+                                    <input type="text" id="Passengers_@(i)__PlaceOfBirth" name="Passengers[@i].PlaceOfBirth" class="form-control" required />
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="Passengers_@i__NationalityId">Nationality <span class="text-danger">*</span></label>
-                                    <select id="Passengers_@i__NationalityId" name="Passengers[@i].NationalityId" class="form-control" required>
+                                    <label for="Passengers_@(i)__NationalityId">Nationality <span class="text-danger">*</span></label>
+                                    <select id="Passengers_@(i)__NationalityId" name="Passengers[@i].NationalityId" class="form-control" required>
                                         <option value="">-- Select Nationality --</option>
                                         @foreach (var nation in nations)
                                         {
@@ -203,34 +203,34 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="ReturnPassengers_@i__FullName">Full Name <span class="text-danger">*</span></label>
-                                        <input type="text" id="ReturnPassengers_@i__FullName" name="ReturnPassengers[@i].FullName" class="form-control" required />
+                                        <label for="ReturnPassengers_@(i)__FullName">Full Name <span class="text-danger">*</span></label>
+                                        <input type="text" id="ReturnPassengers_@(i)__FullName" name="ReturnPassengers[@i].FullName" class="form-control" required />
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="ReturnPassengers_@i__IdNumber">ID/Passport Number <span class="text-danger">*</span></label>
-                                        <input type="text" id="ReturnPassengers_@i__IdNumber" name="ReturnPassengers[@i].IdNumber" class="form-control" required />
+                                        <label for="ReturnPassengers_@(i)__IdNumber">ID/Passport Number <span class="text-danger">*</span></label>
+                                        <input type="text" id="ReturnPassengers_@(i)__IdNumber" name="ReturnPassengers[@i].IdNumber" class="form-control" required />
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="ReturnPassengers_@i__DateOfBirth">Date of Birth <span class="text-danger">*</span></label>
-                                        <input type="date" id="ReturnPassengers_@i__DateOfBirth" name="ReturnPassengers[@i].DateOfBirth" class="form-control" required />
+                                        <label for="ReturnPassengers_@(i)__DateOfBirth">Date of Birth <span class="text-danger">*</span></label>
+                                        <input type="date" id="ReturnPassengers_@(i)__DateOfBirth" name="ReturnPassengers[@i].DateOfBirth" class="form-control" required />
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="ReturnPassengers_@i__PlaceOfBirth">Place of Birth <span class="text-danger">*</span></label>
-                                        <input type="text" id="ReturnPassengers_@i__PlaceOfBirth" name="ReturnPassengers[@i].PlaceOfBirth" class="form-control" required />
+                                        <label for="ReturnPassengers_@(i)__PlaceOfBirth">Place of Birth <span class="text-danger">*</span></label>
+                                        <input type="text" id="ReturnPassengers_@(i)__PlaceOfBirth" name="ReturnPassengers[@i].PlaceOfBirth" class="form-control" required />
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="ReturnPassengers_@i__NationalityId">Nationality <span class="text-danger">*</span></label>
-                                        <select id="ReturnPassengers_@i__NationalityId" name="ReturnPassengers[@i].NationalityId" class="form-control" required>
+                                        <label for="ReturnPassengers_@(i)__NationalityId">Nationality <span class="text-danger">*</span></label>
+                                        <select id="ReturnPassengers_@(i)__NationalityId" name="ReturnPassengers[@i].NationalityId" class="form-control" required>
                                             <option value="">-- Select Nationality --</option>
                                             @foreach (var nation in nations)
                                             {
@@ -270,23 +270,23 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Copy contact info to first passenger
-            $('#ContactName').change(function() {
+            $('#ContactName').change(function () {
                 if ($('#Passengers_0__FullName').val() === '') {
                     $('#Passengers_0__FullName').val($(this).val());
                 }
             });
 
             // Copy invoice name from contact name if empty
-            $('#ContactName').change(function() {
+            $('#ContactName').change(function () {
                 if ($('#InvoiceName').val() === '') {
                     $('#InvoiceName').val($(this).val());
                 }
             });
 
             // Copy return passenger info from outbound if similar
-            $('.copy-from-outbound').click(function() {
+            $('.copy-from-outbound').click(function () {
                 var index = $(this).data('index');
                 $('#ReturnPassengers_' + index + '__FullName').val($('#Passengers_' + index + '__FullName').val());
                 $('#ReturnPassengers_' + index + '__IdNumber').val($('#Passengers_' + index + '__IdNumber').val());
