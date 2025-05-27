@@ -10,44 +10,107 @@
     <p><a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-primary btn-lg">Book Now &raquo;</a></p>
 </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <h2>Available Routes</h2>
-
-        @if (!Model.Any())
-        {
-            <p>No routes available at the moment. Please try again later.</p>
-
-            if (ViewBag.ErrorMessage != null)
-            {
-                <div class="alert alert-danger">
-                    @ViewBag.ErrorMessage
+@if (Request.IsAuthenticated)
+{
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Welcome Back, @User.Identity.Name!</h3>
                 </div>
+                <div class="panel-body">
+                    <p>Thank you for using our ferry booking system.</p>
+                    <p><a href="@Url.Action("MyBookings", "Booking")" class="btn btn-info">View My Bookings</a></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <h2>Available Routes</h2>
+
+            @if (!Model.Any())
+            {
+                <p>No routes available at the moment. Please try again later.</p>
+
+                if (ViewBag.ErrorMessage != null)
+                {
+                    <div class="alert alert-danger">
+                        @ViewBag.ErrorMessage
+                    </div>
+                }
             }
-        }
-        else
-        {
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Route</th>
-                        <th>Code</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var route in Model)
-                    {
+            else
+            {
+                <table class="table table-striped">
+                    <thead>
                         <tr>
-                            <td>@route.Label</td>
-                            <td>@route.Abbrev</td>
-                            <td>
-                                <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-sm btn-primary">Book This Route</a>
-                            </td>
+                            <th>Route</th>
+                            <th>Code</th>
+                            <th>Action</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        }
+                    </thead>
+                    <tbody>
+                        @foreach (var route in Model)
+                        {
+                            <tr>
+                                <td>@route.Label</td>
+                                <td>@route.Abbrev</td>
+                                <td>
+                                    <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-sm btn-primary">Book This Route</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
     </div>
-</div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Available Routes</h2>
+
+            @if (!Model.Any())
+            {
+                <p>No routes available at the moment. Please try again later.</p>
+
+                if (ViewBag.ErrorMessage != null)
+                {
+                    <div class="alert alert-danger">
+                        @ViewBag.ErrorMessage
+                    </div>
+                }
+            }
+            else
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Route</th>
+                            <th>Code</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var route in Model)
+                        {
+                            <tr>
+                                <td>@route.Label</td>
+                                <td>@route.Abbrev</td>
+                                <td>
+                                    <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-sm btn-primary">Book This Route</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            <div class="alert alert-info">
+                <p><strong>Note:</strong> @Html.ActionLink("Sign up", "Register", "Account") for an account to view your booking history and get access to special offers!</p>
+            </div>
+        </div>
+    </div>
+}

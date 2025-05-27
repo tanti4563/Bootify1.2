@@ -78,15 +78,22 @@ namespace FerryBookingSystem.Models
         public int ScheduleId { get; set; }
         public int RouteId { get; set; }
 
+        // Link to AspNetUsers table for authenticated users
+        [StringLength(128)]
+        public string UserId { get; set; }
+
         [Column(TypeName = "datetime2")]
         public DateTime DepartDate { get; set; }
 
         public bool IsRoundTrip { get; set; }
 
         [Column(TypeName = "datetime2")]
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         public string PaymentStatus { get; set; } = "Pending"; // Pending, Paid, Failed
+
+        [StringLength(1000)]
+        public string Notes { get; set; }
 
         public virtual ICollection<TicketOrder> Tickets { get; set; }
     }
@@ -147,6 +154,12 @@ namespace FerryBookingSystem.Models
         [StringLength(500)]
         public string QRCode { get; set; }
 
+        [StringLength(100)]
+        public string BoardingStatus { get; set; } = "Not Boarded"; // Not Boarded, Boarded, Cancelled
+
+        [Column(TypeName = "datetime2")]
+        public DateTime? BoardingTime { get; set; }
+
         public virtual BookingOrder BookingOrder { get; set; }
     }
 
@@ -169,5 +182,10 @@ namespace FerryBookingSystem.Models
 
         [StringLength(500)]
         public string AmountFees { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
+        [StringLength(500)]
+        public string Description { get; set; }
     }
 }

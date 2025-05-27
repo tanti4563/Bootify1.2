@@ -1,0 +1,170 @@
+﻿@model FerryBookingSystem.Models.BookingOrder
+
+@{
+    ViewBag.Title = "Booking Detail";
+}
+
+<h2>Booking Detail</h2>
+
+<div class="booking-detail">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Booking Information</h3>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Booking Code</h4>
+                    <p><strong>@Model.BookingCode</strong></p>
+
+                    <h4>Order Number</h4>
+                    <p>@Model.OrderNo</p>
+
+                    <h4>Route ID</h4>
+                    <p>@Model.RouteId</p>
+
+                    <h4>Contact Person</h4>
+                    <p>@Model.Booker</p>
+                </div>
+
+                <div class="col-md-6">
+                    <h4>Departure Date</h4>
+                    <p>@Model.DepartDate.ToString("yyyy-MM-dd")</p>
+
+                    <h4>Payment Status</h4>
+                    <p>
+                        @if (Model.PaymentStatus == "Paid")
+                        {
+                            <span class="label label-success">Paid</span>
+                        }
+                        else if (Model.PaymentStatus == "Pending")
+                        {
+                            <span class="label label-warning">Pending</span>
+                        }
+                        else
+                        {
+                            <span class="label label-danger">@Model.PaymentStatus</span>
+                        }
+                    </p>
+
+                    <h4>Created Date</h4>
+                    <p>@Model.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss")</p>
+
+                    <h4>Total Amount</h4>
+                    <p><strong>@Model.TotalAmount.ToString("N2") VND</strong></p>
+                </div>
+            </div>
+
+            @if (Model.IsRoundTrip)
+            {
+                <div class="alert alert-info">
+                    <p><strong>Round Trip Booking</strong></p>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="well">
+                    <h4>Notes</h4>
+                    <p>@Model.Notes</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">Contact Information</h3>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h4>Customer Name</h4>
+                    <p>@Model.Booker</p>
+                </div>
+                <div class="col-md-4">
+                    <h4>Phone</h4>
+                    <p>@Model.ContactNo</p>
+                </div>
+                <div class="col-md-4">
+                    <h4>Email</h4>
+                    <p>@Model.Email</p>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.CompNm))
+            {
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4>Invoice Details</h4>
+                        <p>
+                            <strong>@Model.CompNm</strong><br />
+                            Address: @Model.CompAddress<br />
+                            Tax Code: @Model.Taxcode
+                        </p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="panel panel-success">
+        <div class="panel-heading">
+            <h3 class="panel-title">Tickets (@Model.Tickets.Count)</h3>
+        </div>
+        <div class="panel-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Trip Type</th>
+                        <th>Passenger Name</th>
+                        <th>Seat</th>
+                        <th>ID/Passport</th>
+                        <th>Class</th>
+                        <th>Price</th>
+                        <th>Boarding Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ticket in Model.Tickets)
+                    {
+                        <tr>
+                            <td>@(ticket.TripType == 0 ? "Outbound" : "Return")</td>
+                            <td>@ticket.FullNm</td>
+                            <td>@ticket.SeatNm</td>
+                            <td>@ticket.IdNo</td>
+                            <td>@ticket.TicketClass @(ticket.IsVIP ? "(VIP)" : "")</td>
+                            <td>@ticket.PriceWithVAT.ToString("N2") VND</td>
+                            <td>
+                                @if (ticket.BoardingStatus == "Boarded")
+                                {
+                                    <span class="label label-success">Boarded</span>
+                                }
+                                else if (ticket.BoardingStatus == "Not Boarded")
+                                {
+                                    <span class="label label-default">Not Boarded</span>
+                                }
+                                else
+                                {
+                                    <span class="label label-danger">@ticket.BoardingStatus</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="5">Total</th>
+                        <th>@Model.TotalAmount.ToString("N2") VND</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <a href="javascript:window.print()" class="btn btn-default"><i class="glyphicon glyphicon-print"></i> Print Booking</a>
+        <a href="@Url.Action("MyBookings", "Booking")" class="btn btn-primary">Back to My Bookings</a>
+    </div>
+</div>

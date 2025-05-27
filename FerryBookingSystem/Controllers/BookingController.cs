@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
 
 namespace FerryBookingSystem.Controllers
 {
@@ -242,6 +243,18 @@ namespace FerryBookingSystem.Controllers
                     ReturnPassengers = returnSeatDetails
                 };
 
+                // Pre-fill contact information if user is logged in
+                if (User.Identity.IsAuthenticated)
+                {
+                    var userContext = new ApplicationDbContext();
+                    var user = userContext.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
+                    if (user != null)
+                    {
+                        bookingViewModel.ContactName = user.FullName;
+                        bookingViewModel.ContactEmail = user.Email;
+                    }
+                }
+
                 return View(bookingViewModel);
             }
             catch (Exception ex)
@@ -397,6 +410,8 @@ namespace FerryBookingSystem.Controllers
                         RouteId = model.RouteId,
                         DepartDate = model.DepartDate,
                         IsRoundTrip = model.IsRoundTrip,
+                        UserId = User.Identity.IsAuthenticated ? User.Identity.GetUserId() : null,
+                        CreatedDate = DateTime.UtcNow, // Use UTC time
                         Tickets = new List<TicketOrder>()
                     };
 
@@ -484,6 +499,8 @@ namespace FerryBookingSystem.Controllers
         {
             ViewBag.BookingCode = bookingCode;
             ViewBag.Amount = amount;
+            // Display current system time
+            ViewBag.CurrentTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
             return View();
         }
 
@@ -549,6 +566,55 @@ namespace FerryBookingSystem.Controllers
                 ViewBag.ErrorMessage = "Error retrieving booking details: " + ex.Message;
                 return View("Error");
             }
+        }
+
+        // View user's booking history (requires authentication)
+        [Authorize]
+        public ActionResult MyBookings()
+        {
+            var userId = User.Identity.GetUserId();
+            var userEmail = User.Identity.GetUserName();
+
+            // Get bookings associated with the current user
+            var bookings = _dbContext.BookingOrders
+                .Where(b => b.UserId == userId || b.Email == userEmail)
+                .OrderByDescending(b => b.CreatedDate)
+                .ToList();
+
+            // Add system time to ViewBag
+            ViewBag.CurrentTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+            ViewBag.CurrentUser = User.Identity.Name;
+
+            return View(bookings);
+        }
+
+        // View specific booking detail (requires authentication or matching email)
+        public ActionResult BookingDetail(string bookingCode)
+        {
+            var booking = _dbContext.BookingOrders
+                .Include("Tickets")
+                .FirstOrDefault(b => b.BookingCode == bookingCode);
+
+            if (booking == null)
+            {
+                ViewBag.ErrorMessage = "Booking not found.";
+                return View("Error");
+            }
+
+            // Security check - only allow if user is authenticated and either:
+            // 1. The booking belongs to them, or
+            // 2. They are an admin
+            bool canAccess = User.Identity.IsAuthenticated &&
+                            (booking.UserId == User.Identity.GetUserId() ||
+                             booking.Email == User.Identity.Name ||
+                             User.IsInRole("Admin"));
+
+            if (!canAccess)
+            {
+                return new HttpUnauthorizedResult("You do not have permission to view this booking.");
+            }
+
+            return View(booking);
         }
     }
 }
