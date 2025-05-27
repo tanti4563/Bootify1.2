@@ -1,0 +1,117 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+/* Custom styles for the ferry booking system */
+.seat-map {
+    margin: 20px 0;
+}
+
+.deck {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 20px;
+}
+
+.seat {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    font-size: 12px;
+    margin: 2px;
+}
+
+    .seat.available {
+        background-color: #f8f8f8;
+    }
+
+    .seat.selected {
+        background-color: #5cb85c;
+        color: white;
+    }
+
+    .seat.premium {
+        background-color: #f0ad4e;
+    }
+
+        .seat.premium.selected {
+            background-color: #d9534f;
+            color: white;
+        }
+
+.seat-legend {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+    .seat-legend .seat {
+        width: 20px;
+        height: 20px;
+        margin-right: 5px;
+        cursor: default;
+    }
+
+.deck-section {
+    margin-bottom: 30px;
+}
+
+.booking-success .panel {
+    margin-top: 20px;
+}
+
+@media print {
+    .navbar, .btn, footer {
+        display: none !important;
+    }
+
+    .booking-success {
+        margin: 0;
+        padding: 0;
+    }
+
+    .panel {
+        border: 1px solid #ddd !important;
+        page-break-inside: avoid;
+    }
+}
+
+/* Custom styles for payment page */
+.payment-methods {
+    margin-bottom: 20px;
+}
+
+    .payment-methods label {
+        margin-right: 20px;
+    }
+
+    .payment-methods img {
+        margin-right: 8px;
+        vertical-align: middle;
+    }

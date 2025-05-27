@@ -1,0 +1,53 @@
+﻿@model IEnumerable<FerryBookingSystem.Models.RouteInfo>
+
+@{
+    ViewBag.Title = "Ferry Booking System";
+}
+
+<div class="jumbotron">
+    <h1>Ferry Booking System</h1>
+    <p class="lead">Welcome to the Ferry Booking System. Book your tickets easily online!</p>
+    <p><a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-primary btn-lg">Book Now &raquo;</a></p>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>Available Routes</h2>
+
+        @if (!Model.Any())
+        {
+            <p>No routes available at the moment. Please try again later.</p>
+
+            if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger">
+                    @ViewBag.ErrorMessage
+                </div>
+            }
+        }
+        else
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Route</th>
+                        <th>Code</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var route in Model)
+                    {
+                        <tr>
+                            <td>@route.Label</td>
+                            <td>@route.Abbrev</td>
+                            <td>
+                                <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-sm btn-primary">Book This Route</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

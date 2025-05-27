@@ -1,0 +1,36 @@
+﻿@{
+    ViewBag.Title = "Payment Failed";
+}
+
+<div class="alert alert-danger">
+    <h2><i class="glyphicon glyphicon-exclamation-sign"></i> Payment Failed</h2>
+    <p>@(ViewBag.ErrorMessage ?? "Your payment could not be processed. Please try again or choose a different payment method.")</p>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-body">
+        <h4>What happened?</h4>
+        <p>Your payment transaction was not completed successfully. This could be due to:</p>
+        <ul>
+            <li>Insufficient funds in your account</li>
+            <li>Incorrect payment details</li>
+            <li>Connection issues during payment</li>
+            <li>The booking session has timed out</li>
+        </ul>
+
+        <h4>What can I do?</h4>
+        <p>You have the following options:</p>
+        <ul>
+            <li>Try the payment again with the same or a different payment method</li>
+            <li>
+                Start a new booking
+            </li>
+            <li>Contact our customer support if you believe there's a technical issue</li>
+        </ul>
+    </div>
+</div>
+
+<div class="form-group">
+    <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-primary">Start New Booking</a>
+    <a href="@Url.Action("Index", "Home")" class="btn btn-default">Return to Home</a>
+</div>

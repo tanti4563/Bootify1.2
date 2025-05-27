@@ -1,0 +1,248 @@
+﻿@model IEnumerable<FerryBookingSystem.Models.VoyageInfo>
+
+@{
+    ViewBag.Title = "Available Voyages";
+    var returnVoyages = ViewBag.ReturnVoyages as IEnumerable<FerryBookingSystem.Models.VoyageInfo>;
+    var isRoundTrip = ViewBag.IsRoundTrip;
+    var departDate = ViewBag.DepartDate;
+    var returnDate = ViewBag.ReturnDate;
+    var passengerCount = ViewBag.PassengerCount;
+    var routeId = ViewBag.RouteId;
+}
+
+<h2>Available Voyages</h2>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            Departure Date: @departDate.ToString("dddd, MMMM d, yyyy")
+        </h3>
+    </div>
+    <div class="panel-body">
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">
+                No voyages available for the selected date and route. Please try a different date or route.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Boat</th>
+                            <th>Type</th>
+                            <th>Departure Time</th>
+                            <th>Harbor</th>
+                            <th>Available Seats</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var voyage in Model)
+                        {
+                            <tr>
+                                <td>@voyage.BoatNm</td>
+                                <td>@voyage.BoatTypeNm</td>
+                                <td><strong>@voyage.DepartTime</strong></td>
+                                <td>@voyage.Harbor</td>
+                                <td>
+                                    @if (voyage.NoOfRemain >= passengerCount)
+                                    {
+                                        <span class="label label-success">@voyage.NoOfRemain seats available</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="label label-danger">Only @voyage.NoOfRemain seats left</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (voyage.NoOfRemain >= passengerCount)
+                                    {
+                                        if (isRoundTrip && returnVoyages != null && returnVoyages.Any())
+                                        {
+                                            <button class="btn btn-primary btn-sm voyage-select"
+                                                    data-voyage-id="@voyage.VoyageId"
+                                                    data-boat-id="@voyage.BoatId"
+                                                    data-schedule-id="@voyage.ScheduleId"
+                                                    data-depart-date="@departDate.ToString("yyyy-MM-dd")">
+                                                Select
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <a href="@Url.Action("SelectSeats", "Booking", new {
+                                                voyageId = voyage.VoyageId,
+                                                departDate = departDate.ToString("yyyy-MM-dd"),
+                                                routeId = routeId,
+                                                isRoundTrip = false,
+                                                passengerCount = passengerCount,
+                                                boatId = voyage.BoatId,
+                                                scheduleId = voyage.ScheduleId
+                                            })" class="btn btn-primary btn-sm">
+                                                Select
+                                            </a>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">Not enough seats</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@if (isRoundTrip && returnVoyages != null)
+{
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">Return Date: @returnDate?.ToString("dddd, MMMM d, yyyy")</h3>
+        </div>
+        <div class="panel-body">
+            @if (!returnVoyages.Any())
+            {
+                <div class="alert alert-info">
+                    No return voyages available for the selected date and route. Please try a different date.
+                </div>
+            }
+            else
+            {
+                <div id="returnVoyageSection" style="display: none;">
+                    <p class="text-primary">Please select an outbound voyage first</p>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Boat</th>
+                                    <th>Type</th>
+                                    <th>Departure Time</th>
+                                    <th>Harbor</th>
+                                    <th>Available Seats</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var voyage in returnVoyages)
+                                {
+                                    <tr>
+                                        <td>@voyage.BoatNm</td>
+                                        <td>@voyage.BoatTypeNm</td>
+                                        <td><strong>@voyage.DepartTime</strong></td>
+                                        <td>@voyage.Harbor</td>
+                                        <td>
+                                            @if (voyage.NoOfRemain >= passengerCount)
+                                            {
+                                                <span class="label label-success">@voyage.NoOfRemain seats available</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="label label-danger">Only @voyage.NoOfRemain seats left</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (voyage.NoOfRemain >= passengerCount)
+                                            {
+                                                <a href="#" class="btn btn-primary btn-sm return-voyage-select"
+                                                   data-voyage-id="@voyage.VoyageId"
+                                                   data-boat-id="@voyage.BoatId"
+                                                   data-schedule-id="@voyage.ScheduleId"
+                                                   data-return-date="@returnDate?.ToString(" yyyy-MM-dd")">
+                                                    Select
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-danger">Not enough seats</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div>
+    <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-default">Back to Route Selection</a>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var selectedOutboundVoyageId = 0;
+            var selectedOutboundBoatId = 0;
+            var selectedOutboundScheduleId = 0;
+            var departDate = '@departDate.ToString("yyyy-MM-dd")';
+
+            $('.voyage-select').click(function () {
+                selectedOutboundVoyageId = $(this).data('voyage-id');
+                selectedOutboundBoatId = $(this).data('boat-id');
+                selectedOutboundScheduleId = $(this).data('schedule-id');
+
+                $('.voyage-select').removeClass('btn-success').addClass('btn-primary');
+                $(this).removeClass('btn-primary').addClass('btn-success');
+
+                @if (isRoundTrip)
+                {
+                    <text>
+                    // Show return voyage selection
+                    $('#returnVoyageSection').show();
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    // Navigate directly to seat selection for one-way trip
+                    window.location.href = '@Url.Action("SelectSeats", "Booking")?voyageId=' + selectedOutboundVoyageId
+                        + '&departDate=' + departDate
+                        + '&routeId=@routeId'
+                        + '&boatId=' + selectedOutboundBoatId
+                        + '&scheduleId=' + selectedOutboundScheduleId
+                        + '&isRoundTrip=false'
+                        + '&passengerCount=@passengerCount';
+                    </text>
+                }
+            });
+
+            $('.return-voyage-select').click(function () {
+                if (selectedOutboundVoyageId > 0) {
+                    var returnVoyageId = $(this).data('voyage-id');
+                    var returnBoatId = $(this).data('boat-id');
+                    var returnScheduleId = $(this).data('schedule-id');
+                    var returnDate = $(this).data('return-date');
+
+                    // Navigate to seat selection for round trip
+                    window.location.href = '@Url.Action("SelectSeats", "Booking")?voyageId=' + selectedOutboundVoyageId
+                        + '&departDate=' + departDate
+                        + '&routeId=@routeId'
+                        + '&boatId=' + selectedOutboundBoatId
+                        + '&scheduleId=' + selectedOutboundScheduleId
+                        + '&returnVoyageId=' + returnVoyageId
+                        + '&returnDate=' + returnDate
+                        + '&isRoundTrip=true'
+                        + '&passengerCount=@passengerCount';
+                } else {
+                    alert('Please select an outbound voyage first');
+                }
+            });
+        });
+    </script>
+}

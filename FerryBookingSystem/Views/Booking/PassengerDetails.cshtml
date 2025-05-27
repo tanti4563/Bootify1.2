@@ -1,0 +1,300 @@
+﻿@model FerryBookingSystem.Models.BookingViewModel
+
+@{
+    ViewBag.Title = "Passenger Details";
+    var nations = ViewBag.Nations as List<FerryBookingSystem.Models.NationInfo>;
+}
+
+<h2>Passenger Details</h2>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+<form id="passengerForm" method="post" action="@Url.Action("CreateBooking", "Booking")">
+    <input type="hidden" name="VoyageId" value="@Model.VoyageId" />
+    <input type="hidden" name="DepartDate" value="@Model.DepartDate.ToString("yyyy-MM-dd")" />
+    <input type="hidden" name="RouteId" value="@Model.RouteId" />
+    <input type="hidden" name="BoatId" value="@Model.BoatId" />
+    <input type="hidden" name="ScheduleId" value="@Model.ScheduleId" />
+    <input type="hidden" name="IsRoundTrip" value="@Model.IsRoundTrip.ToString().ToLower()" />
+
+    @if (Model.IsRoundTrip && Model.ReturnVoyageId.HasValue && Model.ReturnDate.HasValue)
+    {
+        <input type="hidden" name="ReturnVoyageId" value="@Model.ReturnVoyageId" />
+        <input type="hidden" name="ReturnDate" value="@Model.ReturnDate?.ToString(" yyyy-MM-dd")" />
+    }
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Contact Information</h3>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="ContactName">Contact Name <span class="text-danger">*</span></label>
+                        <input type="text" id="ContactName" name="ContactName" class="form-control" required />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="ContactPhone">Phone Number <span class="text-danger">*</span></label>
+                        <input type="tel" id="ContactPhone" name="ContactPhone" class="form-control" required />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="ContactEmail">Email <span class="text-danger">*</span></label>
+                        <input type="email" id="ContactEmail" name="ContactEmail" class="form-control" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">Invoice Information</h3>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="InvoiceName">Full Name</label>
+                        <input type="text" id="InvoiceName" name="InvoiceName" class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="TaxCode">Tax Code</label>
+                        <input type="text" id="TaxCode" name="TaxCode" class="form-control" />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="CompanyName">Company Name</label>
+                        <input type="text" id="CompanyName" name="CompanyName" class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="CompanyAddress">Company Address</label>
+                        <input type="text" id="CompanyAddress" name="CompanyAddress" class="form-control" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-success">
+        <div class="panel-heading">
+            <h3 class="panel-title">Outbound Passenger Information</h3>
+        </div>
+        <div class="panel-body">
+            @for (int i = 0; i < Model.Passengers.Count; i++)
+            {
+                var passenger = Model.Passengers[i];
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">Passenger @(i + 1) - Seat @passenger.SeatName (@passenger.TicketClass)</h4>
+                    </div>
+                    <div class="panel-body">
+                        <input type="hidden" name="Passengers[@i].SeatId" value="@passenger.SeatId" />
+                        <input type="hidden" name="Passengers[@i].PositionId" value="@passenger.PositionId" />
+                        <input type="hidden" name="Passengers[@i].SeatName" value="@passenger.SeatName" />
+                        <input type="hidden" name="Passengers[@i].Price" value="@passenger.Price" />
+                        <input type="hidden" name="Passengers[@i].TicketTypeId" value="@passenger.TicketTypeId" />
+                        <input type="hidden" name="Passengers[@i].TicketPriceId" value="@passenger.TicketPriceId" />
+                        <input type="hidden" name="Passengers[@i].TicketClass" value="@passenger.TicketClass" />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="Passengers_@i__FullName">Full Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="Passengers_@i__FullName" name="Passengers[@i].FullName" class="form-control" required />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="Passengers_@i__IdNumber">ID/Passport Number <span class="text-danger">*</span></label>
+                                    <input type="text" id="Passengers_@i__IdNumber" name="Passengers[@i].IdNumber" class="form-control" required />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="Passengers_@i__DateOfBirth">Date of Birth <span class="text-danger">*</span></label>
+                                    <input type="date" id="Passengers_@i__DateOfBirth" name="Passengers[@i].DateOfBirth" class="form-control" required />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="Passengers_@i__PlaceOfBirth">Place of Birth <span class="text-danger">*</span></label>
+                                    <input type="text" id="Passengers_@i__PlaceOfBirth" name="Passengers[@i].PlaceOfBirth" class="form-control" required />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="Passengers_@i__NationalityId">Nationality <span class="text-danger">*</span></label>
+                                    <select id="Passengers_@i__NationalityId" name="Passengers[@i].NationalityId" class="form-control" required>
+                                        <option value="">-- Select Nationality --</option>
+                                        @foreach (var nation in nations)
+                                        {
+                                            <option value="@nation.NationId">@nation.Label</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Gender <span class="text-danger">*</span></label>
+                                    <div>
+                                        <label class="radio-inline">
+                                            <input type="radio" name="Passengers[@i].Gender" value="0" checked> Male
+                                        </label>
+                                        <label class="radio-inline">
+                                            <input type="radio" name="Passengers[@i].Gender" value="1"> Female
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (Model.IsRoundTrip && Model.ReturnPassengers != null && Model.ReturnPassengers.Any())
+    {
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                <h3 class="panel-title">Return Passenger Information</h3>
+            </div>
+            <div class="panel-body">
+                @for (int i = 0; i < Model.ReturnPassengers.Count; i++)
+                {
+                    var passenger = Model.ReturnPassengers[i];
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                Passenger @(i + 1) - Seat @passenger.SeatName (@passenger.TicketClass)
+                                <button type="button" class="btn btn-xs btn-info copy-from-outbound" data-index="@i">Copy from Outbound</button>
+                            </h4>
+                        </div>
+                        <div class="panel-body">
+                            <input type="hidden" name="ReturnPassengers[@i].SeatId" value="@passenger.SeatId" />
+                            <input type="hidden" name="ReturnPassengers[@i].PositionId" value="@passenger.PositionId" />
+                            <input type="hidden" name="ReturnPassengers[@i].SeatName" value="@passenger.SeatName" />
+                            <input type="hidden" name="ReturnPassengers[@i].Price" value="@passenger.Price" />
+                            <input type="hidden" name="ReturnPassengers[@i].TicketTypeId" value="@passenger.TicketTypeId" />
+                            <input type="hidden" name="ReturnPassengers[@i].TicketPriceId" value="@passenger.TicketPriceId" />
+                            <input type="hidden" name="ReturnPassengers[@i].TicketClass" value="@passenger.TicketClass" />
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="ReturnPassengers_@i__FullName">Full Name <span class="text-danger">*</span></label>
+                                        <input type="text" id="ReturnPassengers_@i__FullName" name="ReturnPassengers[@i].FullName" class="form-control" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="ReturnPassengers_@i__IdNumber">ID/Passport Number <span class="text-danger">*</span></label>
+                                        <input type="text" id="ReturnPassengers_@i__IdNumber" name="ReturnPassengers[@i].IdNumber" class="form-control" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="ReturnPassengers_@i__DateOfBirth">Date of Birth <span class="text-danger">*</span></label>
+                                        <input type="date" id="ReturnPassengers_@i__DateOfBirth" name="ReturnPassengers[@i].DateOfBirth" class="form-control" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="ReturnPassengers_@i__PlaceOfBirth">Place of Birth <span class="text-danger">*</span></label>
+                                        <input type="text" id="ReturnPassengers_@i__PlaceOfBirth" name="ReturnPassengers[@i].PlaceOfBirth" class="form-control" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="ReturnPassengers_@i__NationalityId">Nationality <span class="text-danger">*</span></label>
+                                        <select id="ReturnPassengers_@i__NationalityId" name="ReturnPassengers[@i].NationalityId" class="form-control" required>
+                                            <option value="">-- Select Nationality --</option>
+                                            @foreach (var nation in nations)
+                                            {
+                                                <option value="@nation.NationId">@nation.Label</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Gender <span class="text-danger">*</span></label>
+                                        <div>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="ReturnPassengers[@i].Gender" value="0" checked> Male
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="ReturnPassengers[@i].Gender" value="1"> Female
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Proceed to Payment</button>
+        <a href="@Url.Action("SelectSeats", "Booking", new { voyageId = Model.VoyageId, departDate = Model.DepartDate, routeId = Model.RouteId })" class="btn btn-default">Back to Seat Selection</a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Copy contact info to first passenger
+            $('#ContactName').change(function() {
+                if ($('#Passengers_0__FullName').val() === '') {
+                    $('#Passengers_0__FullName').val($(this).val());
+                }
+            });
+
+            // Copy invoice name from contact name if empty
+            $('#ContactName').change(function() {
+                if ($('#InvoiceName').val() === '') {
+                    $('#InvoiceName').val($(this).val());
+                }
+            });
+
+            // Copy return passenger info from outbound if similar
+            $('.copy-from-outbound').click(function() {
+                var index = $(this).data('index');
+                $('#ReturnPassengers_' + index + '__FullName').val($('#Passengers_' + index + '__FullName').val());
+                $('#ReturnPassengers_' + index + '__IdNumber').val($('#Passengers_' + index + '__IdNumber').val());
+                $('#ReturnPassengers_' + index + '__DateOfBirth').val($('#Passengers_' + index + '__DateOfBirth').val());
+                $('#ReturnPassengers_' + index + '__PlaceOfBirth').val($('#Passengers_' + index + '__PlaceOfBirth').val());
+                $('#ReturnPassengers_' + index + '__NationalityId').val($('#Passengers_' + index + '__NationalityId').val());
+                $('input[name="ReturnPassengers[' + index + '].Gender"][value="' + $('input[name="Passengers[' + index + '].Gender"]:checked').val() + '"]').prop('checked', true);
+            });
+        });
+    </script>
+}

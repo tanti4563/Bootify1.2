@@ -1,0 +1,138 @@
+﻿@model IEnumerable<FerryBookingSystem.Models.RouteInfo>
+
+@{
+    ViewBag.Title = "Select Route";
+}
+
+<h2>Select Your Route</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="alert alert-danger">
+                @ViewBag.ErrorMessage
+            </div>
+        }
+
+        @using (Html.BeginForm("SearchVoyages", "Booking", FormMethod.Post, new { @class = "form-horizontal" }))
+        {
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Trip Details</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">Route:</label>
+                        <div class="col-md-9">
+                            <select id="routeId" name="routeId" class="form-control" required>
+                                <option value="">-- Select Route --</option>
+                                @foreach (var route in Model)
+                                {
+                                    <option value="@route.RouteId">@route.Label (@route.Abbrev)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">Trip Type:</label>
+                        <div class="col-md-9">
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="tripType" value="oneway" checked id="oneWayTrip" onclick="toggleReturnDate()"> One Way
+                                </label>
+                                <label style="margin-left: 20px;">
+                                    <input type="radio" name="tripType" value="roundtrip" id="roundTrip" onclick="toggleReturnDate()"> Round Trip
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">Departure Date:</label>
+                        <div class="col-md-9">
+                            <input type="date" id="departDate" name="departDate" class="form-control" required min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                        </div>
+                    </div>
+
+                    <div class="form-group return-date" style="display: none;">
+                        <label class="col-md-3 control-label">Return Date:</label>
+                        <div class="col-md-9">
+                            <input type="date" id="returnDate" name="returnDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">Number of Passengers:</label>
+                        <div class="col-md-9">
+                            <input type="number" id="passengerCount" name="passengerCount" class="form-control" min="1" max="10" value="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-offset-3 col-md-9">
+                            <input type="submit" value="Search Voyages" class="btn btn-primary">
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-default">Back to Home</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" id="isRoundTrip" name="isRoundTrip" value="false" />
+        }
+    </div>
+
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">Booking Information</h3>
+            </div>
+            <div class="panel-body">
+                <p>Select your preferred route, travel dates, and the number of passengers.</p>
+                <p>Available routes include:</p>
+                <ul>
+                    @foreach (var route in Model.Take(5))
+                    {
+                        <li>@route.Label</li>
+                    }
+                    @if (Model.Count() > 5)
+                    {
+                        <li>And more...</li>
+                    }
+                </ul>
+                <p><strong>Note:</strong> Round trip bookings allow you to select different seats for your outbound and return journeys.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleReturnDate() {
+            var isRoundTrip = document.getElementById('roundTrip').checked;
+            document.getElementById('isRoundTrip').value = isRoundTrip;
+
+            if (isRoundTrip) {
+                document.querySelector('.return-date').style.display = 'block';
+                document.getElementById('returnDate').setAttribute('required', 'required');
+            } else {
+                document.querySelector('.return-date').style.display = 'none';
+                document.getElementById('returnDate').removeAttribute('required');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleReturnDate();
+
+            // Set minimum return date based on departure date
+            document.getElementById('departDate').addEventListener('change', function () {
+                document.getElementById('returnDate').min = this.value;
+                if (document.getElementById('returnDate').value < this.value) {
+                    document.getElementById('returnDate').value = this.value;
+                }
+            });
+        });
+    </script>
+}

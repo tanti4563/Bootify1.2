@@ -1,0 +1,473 @@
+﻿@model FerryBookingSystem.Models.SeatSelectionViewModel
+
+@{
+    ViewBag.Title = "Select Seats";
+    var returnSeats = ViewBag.ReturnSeats as List<FerryBookingSystem.Models.SeatInfo>;
+    var returnTicketPrices = ViewBag.ReturnTicketPrices as List<FerryBookingSystem.Models.TicketPriceInfo>;
+    var returnVoyageInfo = ViewBag.ReturnVoyageInfo as FerryBookingSystem.Models.VoyageInfo;
+}
+
+<h2>Select Your Seats</h2>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <form id="seatSelectionForm" method="post" action="@Url.Action("PassengerDetails", "Booking")">
+            <input type="hidden" name="voyageId" value="@Model.VoyageId" />
+            <input type="hidden" name="departDate" value="@Model.DepartDate.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="routeId" value="@(Model.VoyageInfo?.RouteId ?? 0)" />
+            <input type="hidden" name="boatId" value="@(Model.VoyageInfo?.BoatId ?? 0)" />
+            <input type="hidden" name="scheduleId" value="@(Model.VoyageInfo?.ScheduleId ?? 0)" />
+            <input type="hidden" name="isRoundTrip" value="@Model.IsRoundTrip.ToString().ToLower()" />
+            <input type="hidden" name="selectedSeats" id="selectedSeats" value="" />
+
+            @if (Model.IsRoundTrip && Model.ReturnVoyageId.HasValue && Model.ReturnDate.HasValue)
+            {
+                <input type="hidden" name="returnVoyageId" value="@Model.ReturnVoyageId" />
+                <input type="hidden" name="returnDate" value="@Model.ReturnDate?.ToString(" yyyy-MM-dd")" />
+                <input type="hidden" name="returnSelectedSeats" id="returnSelectedSeats" value="" />
+            }
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Outbound Journey - @Model.DepartDate.ToString("dddd, MMMM d, yyyy") - @(Model.VoyageInfo?.DepartTime)</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="alert alert-info">
+                        <strong>Please select @Model.PassengerCount seat(s) for your outbound journey.</strong>
+                        <span id="outboundSeatCounter" class="badge">0</span> selected.
+                    </div>
+
+                    <div class="seat-legend">
+                        <span class="seat available"></span> Available
+                        <span class="seat selected"></span> Selected
+                        <span class="seat premium"></span> Premium
+                    </div>
+
+                    <div class="seat-map">
+                        @{
+                            var decks = Model.Seats.GroupBy(s => s.DeckNumber).OrderBy(g => g.Key);
+                        }
+
+                        @foreach (var deck in decks)
+                        {
+                            <div class="deck-section">
+                                <h4>Deck @deck.Key</h4>
+                                <div class="deck">
+                                    @foreach (var seat in deck)
+                                    {
+                                        var seatClass = seat.IsVIP ? "seat premium" : "seat available";
+                                        <div class="@seatClass"
+                                             data-seat-id="@seat.SeatId"
+                                             data-position-id="@seat.PositionId"
+                                             data-seat-name="@seat.SeatNm"
+                                             data-ticket-class="@seat.TicketClass"
+                                             data-is-vip="@seat.IsVIP.ToString().ToLower()"
+                                             title="@seat.SeatNm (@seat.TicketClass)">
+                                            @seat.SeatNm
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.IsRoundTrip && Model.ReturnVoyageId.HasValue && Model.ReturnDate.HasValue && returnSeats != null && returnVoyageInfo != null)
+            {
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Return Journey - @Model.ReturnDate?.ToString("dddd, MMMM d, yyyy") - @(returnVoyageInfo?.DepartTime)</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="alert alert-info">
+                            <strong>Please select @Model.PassengerCount seat(s) for your return journey.</strong>
+                            <span id="returnSeatCounter" class="badge">0</span> selected.
+                        </div>
+
+                        <div class="seat-map">
+                            @{
+                                var returnDecks = returnSeats.GroupBy(s => s.DeckNumber).OrderBy(g => g.Key);
+                            }
+
+                            @foreach (var deck in returnDecks)
+                            {
+                                <div class="deck-section">
+                                    <h4>Deck @deck.Key</h4>
+                                    <div class="deck return-deck">
+                                        @foreach (var seat in deck)
+                                        {
+                                            var seatClass = seat.IsVIP ? "seat premium" : "seat available";
+                                            <div class="@seatClass return-seat"
+                                                 data-seat-id="@seat.SeatId"
+                                                 data-position-id="@seat.PositionId"
+                                                 data-seat-name="@seat.SeatNm"
+                                                 data-ticket-class="@seat.TicketClass"
+                                                 data-is-vip="@seat.IsVIP.ToString().ToLower()"
+                                                 title="@seat.SeatNm (@seat.TicketClass)">
+                                                @seat.SeatNm
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="fare-summary">
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Fare Summary</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="outboundSummary">
+                            <h4>Outbound Journey</h4>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Seat</th>
+                                        <th>Class</th>
+                                        <th>Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="outboundSummaryBody">
+                                    <tr><td colspan="3">No seats selected</td></tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="2">Subtotal:</th>
+                                        <th id="outboundTotal">0.00</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        @if (Model.IsRoundTrip && Model.ReturnVoyageId.HasValue && Model.ReturnDate.HasValue)
+                        {
+                            <div id="returnSummary">
+                                <h4>Return Journey</h4>
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Seat</th>
+                                            <th>Class</th>
+                                            <th>Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="returnSummaryBody">
+                                        <tr><td colspan="3">No seats selected</td></tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="2">Subtotal:</th>
+                                            <th id="returnTotal">0.00</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+
+                        <div id="totalSummary">
+                            <table class="table">
+                                <tr>
+                                    <th>Total Fare:</th>
+                                    <th id="grandTotal">0.00</th>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" id="continueButton" disabled>Continue to Passenger Details</button>
+                <a href="@Url.Action("SearchVoyages", "Booking")" class="btn btn-default">Back to Voyage Selection</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">Ticket Prices</h3>
+            </div>
+            <div class="panel-body">
+                <h4>Outbound Journey</h4>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Class</th>
+                            <th>Type</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var price in Model.TicketPrices)
+                        {
+                            <tr>
+                                <td>@price.TicketClass</td>
+                                <td>@price.TicketTypeLabel</td>
+                                <td>@price.PriceWithVAT.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.IsRoundTrip && returnTicketPrices != null)
+                {
+                    <h4>Return Journey</h4>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Type</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var price in returnTicketPrices)
+                            {
+                                <tr>
+                                    <td>@price.TicketClass</td>
+                                    <td>@price.TicketTypeLabel</td>
+                                    <td>@price.PriceWithVAT.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .seat-map {
+        margin: 20px 0;
+    }
+
+    .deck {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 20px;
+    }
+
+    .seat {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        font-size: 12px;
+        margin: 2px;
+    }
+
+        .seat.available {
+            background-color: #f8f8f8;
+        }
+
+        .seat.selected {
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        .seat.premium {
+            background-color: #f0ad4e;
+        }
+
+            .seat.premium.selected {
+                background-color: #d9534f;
+                color: white;
+            }
+
+    .seat-legend {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+        .seat-legend .seat {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            cursor: default;
+        }
+
+    .deck-section {
+        margin-bottom: 30px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var outboundSelectedSeats = [];
+            var returnSelectedSeats = [];
+            var passengerCount = @Model.PassengerCount;
+            var outboundTicketPrices = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TicketPrices));
+            var returnTicketPrices = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(returnTicketPrices ?? new List<FerryBookingSystem.Models.TicketPriceInfo>()));
+            var outboundTotal = 0;
+            var returnTotal = 0;
+
+            // Handle outbound seat selection
+            $('.seat:not(.return-seat)').click(function() {
+                var seatId = $(this).data('seat-id');
+                var seatName = $(this).data('seat-name');
+                var ticketClass = $(this).data('ticket-class');
+                var isVip = $(this).data('is-vip') === 'true';
+
+                if ($(this).hasClass('selected')) {
+                    // Deselect seat
+                    $(this).removeClass('selected');
+                    outboundSelectedSeats = outboundSelectedSeats.filter(s => s.seatId !== seatId);
+                } else {
+                    // Check if max seats already selected
+                    if (outboundSelectedSeats.length >= passengerCount) {
+                        alert('You have already selected the maximum number of seats. Please deselect a seat first.');
+                        return;
+                    }
+
+                    // Select seat
+                    $(this).addClass('selected');
+
+                    // Find price for this seat class
+                    var price = outboundTicketPrices.find(p => p.TicketClass === ticketClass);
+                    var priceWithVAT = price ? price.PriceWithVAT : 0;
+                    var ticketTypeId = price ? price.TicketTypeId : 1;
+                    var ticketPriceId = price ? price.TicketPriceId : 1;
+
+                    outboundSelectedSeats.push({
+                        seatId: seatId,
+                        positionId: $(this).data('position-id'),
+                        seatName: seatName,
+                        ticketClass: ticketClass,
+                        isVip: isVip,
+                        priceWithVAT: priceWithVAT,
+                        ticketTypeId: ticketTypeId,
+                        ticketPriceId: ticketPriceId
+                    });
+                }
+
+                updateSummary();
+                checkFormValidity();
+            });
+
+            // Handle return seat selection
+            $('.return-seat').click(function() {
+                var seatId = $(this).data('seat-id');
+                var seatName = $(this).data('seat-name');
+                var ticketClass = $(this).data('ticket-class');
+                var isVip = $(this).data('is-vip') === 'true';
+
+                if ($(this).hasClass('selected')) {
+                    // Deselect seat
+                    $(this).removeClass('selected');
+                    returnSelectedSeats = returnSelectedSeats.filter(s => s.seatId !== seatId);
+                } else {
+                    // Check if max seats already selected
+                    if (returnSelectedSeats.length >= passengerCount) {
+                        alert('You have already selected the maximum number of seats. Please deselect a seat first.');
+                        return;
+                    }
+
+                    // Select seat
+                    $(this).addClass('selected');
+
+                    // Find price for this seat class
+                    var price = returnTicketPrices.find(p => p.TicketClass === ticketClass);
+                    var priceWithVAT = price ? price.PriceWithVAT : 0;
+                    var ticketTypeId = price ? price.TicketTypeId : 1;
+                    var ticketPriceId = price ? price.TicketPriceId : 1;
+
+                    returnSelectedSeats.push({
+                        seatId: seatId,
+                        positionId: $(this).data('position-id'),
+                        seatName: seatName,
+                        ticketClass: ticketClass,
+                        isVip: isVip,
+                        priceWithVAT: priceWithVAT,
+                        ticketTypeId: ticketTypeId,
+                        ticketPriceId: ticketPriceId
+                    });
+                }
+
+                updateSummary();
+                checkFormValidity();
+            });
+
+            // Update seat summary
+            function updateSummary() {
+                // Update outbound summary
+                $('#outboundSeatCounter').text(outboundSelectedSeats.length);
+                var outboundHtml = '';
+                outboundTotal = 0;
+
+                if (outboundSelectedSeats.length === 0) {
+                    outboundHtml = '<tr><td colspan="3">No seats selected</td></tr>';
+                } else {
+                    outboundSelectedSeats.forEach(function(seat) {
+                        outboundHtml += '<tr>' +
+                            '<td>' + seat.seatName + '</td>' +
+                            '<td>' + seat.ticketClass + (seat.isVip ? ' (VIP)' : '') + '</td>' +
+                            '<td>' + seat.priceWithVAT.toFixed(2) + '</td>' +
+                            '</tr>';
+                        outboundTotal += seat.priceWithVAT;
+                    });
+                }
+
+                $('#outboundSummaryBody').html(outboundHtml);
+                $('#outboundTotal').text(outboundTotal.toFixed(2));
+
+                // Update return summary
+                $('#returnSeatCounter').text(returnSelectedSeats.length);
+                var returnHtml = '';
+                returnTotal = 0;
+
+                if (returnSelectedSeats.length === 0) {
+                    returnHtml = '<tr><td colspan="3">No seats selected</td></tr>';
+                } else {
+                    returnSelectedSeats.forEach(function(seat) {
+                        returnHtml += '<tr>' +
+                            '<td>' + seat.seatName + '</td>' +
+                            '<td>' + seat.ticketClass + (seat.isVip ? ' (VIP)' : '') + '</td>' +
+                            '<td>' + seat.priceWithVAT.toFixed(2) + '</td>' +
+                            '</tr>';
+                        returnTotal += seat.priceWithVAT;
+                    });
+                }
+
+                $('#returnSummaryBody').html(returnHtml);
+                $('#returnTotal').text(returnTotal.toFixed(2));
+
+                // Update grand total
+                var grandTotal = outboundTotal + returnTotal;
+                $('#grandTotal').text(grandTotal.toFixed(2));
+
+                // Update hidden fields
+                $('#selectedSeats').val(outboundSelectedSeats.map(s => s.seatId).join(','));
+                $('#returnSelectedSeats').val(returnSelectedSeats.map(s => s.seatId).join(','));
+            }
+
+            // Check if form can be submitted
+            function checkFormValidity() {
+                var isRoundTrip = @Model.IsRoundTrip.ToString().ToLower();
+                var outboundValid = outboundSelectedSeats.length === passengerCount;
+                var returnValid = isRoundTrip ? returnSelectedSeats.length === passengerCount : true;
+
+                $('#continueButton').prop('disabled', !(outboundValid && returnValid));
+            }
+        });
+    </script>
+}

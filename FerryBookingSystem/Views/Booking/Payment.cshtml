@@ -1,0 +1,153 @@
+﻿@{
+    ViewBag.Title = "Payment";
+    var bookingCode = ViewBag.BookingCode;
+    var amount = ViewBag.Amount;
+}
+
+<h2>Payment</h2>
+
+<div class="alert alert-info">
+    <p><strong>Your booking is confirmed!</strong> Booking code: <strong>@bookingCode</strong></p>
+    <p>Your seats will be held for 15 minutes. Please complete payment to secure your booking.</p>
+    <p>Time remaining: <strong><span class="countdown">15:00</span></strong></p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Payment Details</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Booking Code</h4>
+                        <p><strong>@bookingCode</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Total Amount</h4>
+                        <p><strong>@amount.ToString("N2") VND</strong></p>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="payment-options">
+                    <h4>Select Payment Method</h4>
+
+                    <div class="payment-methods">
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="paymentMethod" value="vnpay" checked>
+                                <img src="https://vnpay.vn/assets/images/logo-icon/logo-primary.svg" alt="VNPAY" height="30">
+                                VNPAY
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="paymentMethod" value="bank">
+                                <i class="glyphicon glyphicon-credit-card"></i>
+                                Bank Transfer
+                            </label>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="payment-form">
+                        <!-- Mock payment form for display purposes -->
+                        <form id="paymentForm" action="@Url.Action("PaymentConfirmation", "Booking")" method="get">
+                            <input type="hidden" name="vnp_TxnRef" value="@bookingCode" />
+                            <input type="hidden" name="vnp_OrderInfo" value="@bookingCode" />
+                            <input type="hidden" name="vnp_Amount" value="@((int)amount * 100)" />
+                            <input type="hidden" name="vnp_ResponseCode" value="00" />
+                            <input type="hidden" name="vnp_BankCode" value="VNPAY" />
+                            <input type="hidden" name="vnp_BankTranNo" value="@DateTime.Now.ToString("yyyyMMddHHmm")" />
+                            <input type="hidden" name="vnp_CardType" value="VNPAY" />
+                            <input type="hidden" name="vnp_PayDate" value="@DateTime.Now.ToString("yyyyMMddHHmm")" />
+                            <input type="hidden" name="vnp_TransactionNo" value="@(new Random().Next(100000, 999999))" />
+                            <input type="hidden" name="vnp_SecureHash" value="mockSecureHash" />
+
+                            <div class="form-group">
+                                <label for="cardNumber">Card Number</label>
+                                <input type="text" class="form-control" id="cardNumber" placeholder="Card number" value="4111 1111 1111 1111" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="expiry">Expiration Date (MM/YY)</label>
+                                        <input type="text" class="form-control" id="expiry" placeholder="MM/YY" value="12/25" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="cvv">CVV</label>
+                                        <input type="text" class="form-control" id="cvv" placeholder="CVV" value="123" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cardholderName">Cardholder Name</label>
+                                <input type="text" class="form-control" id="cardholderName" placeholder="Name on card" value="Test User" />
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-success btn-lg btn-block">Pay @amount.ToString("N2") VND</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">Payment Instructions</h3>
+            </div>
+            <div class="panel-body">
+                <p>Please complete your payment within <strong>15 minutes</strong> to secure your booking.</p>
+                <p>For demonstration purposes, any payment information entered will be accepted.</p>
+                <p><strong>Note:</strong> This is a simulated payment process for testing.</p>
+                <hr />
+                <h4>Need Help?</h4>
+                <p>If you have any questions about your booking or payment, please contact our customer service:</p>
+                <ul>
+                    <li>Phone: +84 123 456 789</li>
+                    <li>Email: support@ferrycompany.com</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Countdown timer for payment
+        $(document).ready(function() {
+            var minutes = 15;
+            var seconds = 0;
+
+            var interval = setInterval(function() {
+                if (seconds == 0) {
+                    minutes--;
+                    seconds = 59;
+                } else {
+                    seconds--;
+                }
+
+                var timeString = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+                $('.countdown').text(timeString);
+
+                if (minutes == 0 && seconds == 0) {
+                    clearInterval(interval);
+                    alert('Your booking time has expired. Please start a new booking.');
+                    window.location.href = '@Url.Action("Index", "Home")';
+                }
+            }, 1000);
+        });
+    </script>
+}
