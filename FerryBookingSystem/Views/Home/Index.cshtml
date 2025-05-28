@@ -7,7 +7,22 @@
 <div class="jumbotron">
     <h1>Ferry Booking System</h1>
     <p class="lead">Welcome to the Ferry Booking System. Book your tickets easily online!</p>
-    <p><a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-primary btn-lg">Book Now &raquo;</a></p>
+
+    @if (Request.IsAuthenticated)
+    {
+        <p><a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-primary btn-lg">Book Now &raquo;</a></p>
+    }
+    else
+    {
+        <p>
+            <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("SelectRoute", "Booking") })" class="btn btn-primary btn-lg">Login to Book &raquo;</a>
+            <a href="@Url.Action("Register", "Account")" class="btn btn-default btn-lg">Register &raquo;</a>
+        </p>
+        <div class="alert alert-info">
+            <p><strong>Please login or register to book ferry tickets.</strong></p>
+            <p>Creating an account gives you access to your booking history and special offers!</p>
+        </div>
+    }
 </div>
 
 @if (Request.IsAuthenticated)

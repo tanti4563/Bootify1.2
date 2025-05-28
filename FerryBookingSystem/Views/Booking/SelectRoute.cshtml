@@ -4,15 +4,27 @@
     ViewBag.Title = "Select Route";
 }
 
-<h2>Select Your Route</h2>
+<h2>Select Route and Travel Details</h2>
 
-<div class="row">
+@if (!Request.IsAuthenticated)
+{
+    <div class="alert alert-warning">
+        <p>
+            <strong>You must be logged in to book tickets.</strong>
+            Please <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("SelectRoute", "Booking") })">login</a> or
+            <a href="@Url.Action("Register", "Account")">register</a> to continue.
+        </p>
+    </div>
+}
+else
+{
+ <div class="row">
     <div class="col-md-8">
         @if (ViewBag.ErrorMessage != null)
         {
-            <div class="alert alert-danger">
-                @ViewBag.ErrorMessage
-            </div>
+    <div class="alert alert-danger">
+        @ViewBag.ErrorMessage
+    </div>
         }
 
         @using (Html.BeginForm("SearchVoyages", "Booking", FormMethod.Post, new { @class = "form-horizontal" }))
@@ -105,7 +117,9 @@
             </div>
         </div>
     </div>
+    
 </div>
+}
 
 @section Scripts {
     <script>

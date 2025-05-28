@@ -191,5 +191,6 @@ namespace FerryBookingSystem.Services
                 throw new Exception($"Error getting booking ticket: {ex.Message}", ex);
             }
         }
+
     }
 }

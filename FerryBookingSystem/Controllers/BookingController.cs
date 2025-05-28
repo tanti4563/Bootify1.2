@@ -9,12 +9,14 @@ using Microsoft.AspNet.Identity;
 
 namespace FerryBookingSystem.Controllers
 {
+    [Authorize]
     public class BookingController : Controller
     {
         private readonly ApiService _apiService = new ApiService();
         private readonly FerryBookingContext _dbContext = new FerryBookingContext();
 
         // Step 1: Select Route and Travel Details
+        [AllowAnonymous]
         public async Task<ActionResult> SelectRoute()
         {
             try
@@ -506,44 +508,92 @@ namespace FerryBookingSystem.Controllers
 
         // Step 5: Payment Confirmation (called by payment gateway)
         [HttpGet]
-        public async Task<ActionResult> PaymentConfirmation(string vnp_TxnRef, string vnp_ResponseCode, string vnp_Amount, string vnp_BankCode, string vnp_BankTranNo, string vnp_CardType, string vnp_OrderInfo, string vnp_PayDate, string vnp_TransactionNo, string vnp_SecureHash)
+        public async Task<ActionResult> PaymentConfirmation(
+    string vnp_Amount,
+    string vnp_BankCode,
+    string vnp_BankTranNo,
+    string vnp_CardType,
+    string vnp_OrderInfo,
+    string vnp_PayDate,
+    string vnp_ResponseCode,
+    string vnp_TransactionNo,
+    string vnp_TxnRef,
+    string vnp_SecureHash)
         {
-            // In a real application, verify the payment signature first
-
-            // Mock successful payment
-            if (vnp_ResponseCode == "00")
+            try
             {
-                try
+                // Log payment data for debugging
+                System.Diagnostics.Debug.WriteLine($"Payment received at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} for user {User.Identity.Name}");
+                System.Diagnostics.Debug.WriteLine($"Order: {vnp_OrderInfo}, Amount: {vnp_Amount}, Response: {vnp_ResponseCode}");
+
+                // Create dictionary of all received parameters
+                var vnpParams = new Dictionary<string, string>();
+                foreach (string key in Request.QueryString.Keys)
                 {
-                    // Get booking details
-                    var bookingResult = await _apiService.GetBookingTicketAsync(vnp_OrderInfo); // Using OrderInfo as BookingCode for demo
+                    if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
+                    {
+                        vnpParams.Add(key, Request.QueryString[key]);
+                    }
+                }
+
+                // FOR DEMO/TESTING ONLY: Skip validation in test environment
+                bool isValidSignature = true;
+
+                // UNCOMMENT THIS FOR PRODUCTION:
+                // bool isValidSignature = VnPayHelper.ValidateSignature(vnp_SecureHash, vnpParams);
+
+                if (!isValidSignature)
+                {
+                    ViewBag.ErrorMessage = "Invalid payment signature";
+                    return View("PaymentFailed");
+                }
+
+                // Check payment response
+                if (vnp_ResponseCode == "00")
+                {
+                    string bookingCode = vnp_OrderInfo; // The booking code is in vnp_OrderInfo
+
+                    // Get booking details from API
+                    var bookingResult = await _apiService.GetBookingTicketAsync(bookingCode);
 
                     if (bookingResult.Status && bookingResult.Code == "00" && bookingResult.Data != null && bookingResult.Data.Any())
                     {
                         var bookingData = bookingResult.Data.First();
 
                         // Update local database
-                        var booking = _dbContext.BookingOrders.FirstOrDefault(b => b.BookingCode == bookingData.BookingCode);
+                        var booking = _dbContext.BookingOrders.FirstOrDefault(b => b.BookingCode == bookingCode);
                         if (booking != null)
                         {
-                            booking.PaidAmount = bookingData.Total;
+                            // Calculate the amount (VNPAY adds 00 to the end)
+                            decimal paidAmount = decimal.Parse(vnp_Amount) / 100;
+
+                            booking.PaidAmount = paidAmount;
                             booking.PaymentStatus = "Paid";
 
-                            _dbContext.SaveChanges();
-                        }
+                            // Store payment details
+                            booking.Notes = $"Payment confirmed via {vnp_BankCode} at {DateTime.Now:yyyy-MM-dd HH:mm}. " +
+                                           $"Transaction: {vnp_TransactionNo}, Bank Reference: {vnp_BankTranNo}";
 
-                        return RedirectToAction("BookingComplete", new { bookingCode = bookingData.BookingCode });
+                            _dbContext.SaveChanges();
+
+                            // Log success
+                            System.Diagnostics.Debug.WriteLine($"Payment successful for booking {bookingCode}");
+
+                            // Redirect to success page
+                            return RedirectToAction("BookingComplete", new { bookingCode = bookingCode });
+                        }
                     }
                 }
-                catch (Exception ex)
-                {
-                    ViewBag.ErrorMessage = "Error processing payment: " + ex.Message;
-                    return View("PaymentFailed");
-                }
-            }
 
-            ViewBag.ErrorMessage = "Payment failed or booking information could not be retrieved.";
-            return View("PaymentFailed");
+                // If we get here, payment was not successful
+                ViewBag.ErrorMessage = $"Payment failed or booking information could not be retrieved. Error code: {vnp_ResponseCode}";
+                return View("PaymentFailed");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Error processing payment: " + ex.Message;
+                return View("PaymentFailed");
+            }
         }
 
         // Booking Complete
@@ -551,11 +601,25 @@ namespace FerryBookingSystem.Controllers
         {
             try
             {
+                // Try to get booking from local database first
+                var booking = _dbContext.BookingOrders
+                    .Include("Tickets")
+                    .FirstOrDefault(b => b.BookingCode == bookingCode);
+
+                if (booking != null)
+                {
+                    // If found in database, return it to the view
+                    ViewBag.ApiResult = null; // No API result
+                    return View(booking);
+                }
+
+                // If not found in database, try the API
                 var bookingResult = await _apiService.GetBookingTicketAsync(bookingCode);
 
                 if (bookingResult.Status && bookingResult.Code == "00" && bookingResult.Data != null && bookingResult.Data.Any())
                 {
-                    return View(bookingResult.Data.First());
+                    ViewBag.ApiResult = bookingResult.Data.First(); // Store API result in ViewBag
+                    return View();  // Pass null to view, it will use ViewBag
                 }
 
                 ViewBag.ErrorMessage = "Booking information could not be retrieved.";
@@ -616,5 +680,77 @@ namespace FerryBookingSystem.Controllers
 
             return View(booking);
         }
+        [HttpPost]
+        public async Task<ActionResult> ProcessTestPayment(string bookingCode, decimal amount)
+        {
+            try
+            {
+                // Get booking details
+                var bookingResult = await _apiService.GetBookingTicketAsync(bookingCode);
+
+                if (bookingResult.Status && bookingResult.Code == "00" && bookingResult.Data != null && bookingResult.Data.Any())
+                {
+                    var bookingData = bookingResult.Data.First();
+
+                    // Update local database
+                    var booking = _dbContext.BookingOrders.FirstOrDefault(b => b.BookingCode == bookingCode);
+                    if (booking != null)
+                    {
+                        booking.PaidAmount = amount;
+                        booking.PaymentStatus = "Paid";
+
+                        // Store payment details
+                        booking.Notes = $"Test payment confirmed at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} by user {User.Identity.Name}";
+
+                        _dbContext.SaveChanges();
+
+                        // Redirect to success page
+                        return RedirectToAction("BookingComplete", new { bookingCode = bookingCode });
+                    }
+                }
+
+                ViewBag.ErrorMessage = "Payment failed or booking information could not be retrieved.";
+                return View("PaymentFailed");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Error processing payment: " + ex.Message;
+                return View("PaymentFailed");
+            }
+        }
+
+        [HttpGet]
+        public ActionResult TestPayment(string bookingCode)
+        {
+            try
+            {
+                // Find the booking in your database
+                var booking = _dbContext.BookingOrders.FirstOrDefault(b => b.BookingCode == bookingCode);
+
+                if (booking == null)
+                {
+                    ViewBag.ErrorMessage = "Booking not found with code: " + bookingCode;
+                    return View("PaymentFailed");
+                }
+
+                // Update the booking status
+                booking.PaymentStatus = "Paid";
+                booking.PaidAmount = booking.TotalAmount;
+                booking.Notes = $"Test payment processed at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} by user {User.Identity.Name}";
+
+                _dbContext.SaveChanges();
+
+                // Redirect directly to the booking complete page
+                return RedirectToAction("BookingComplete", new { bookingCode = bookingCode });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Error processing test payment: " + ex.Message;
+                return View("PaymentFailed");
+            }
+        }
+
+
+        
     }
 }
