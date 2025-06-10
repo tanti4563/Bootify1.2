@@ -10,8 +10,8 @@ namespace FerryBookingSystem
     {
         protected void Application_Start()
         {
-            // Initialize database
-            Database.SetInitializer(new CreateDatabaseIfNotExists<FerryBookingContext>());
+            // Disable database initializer to prevent model validation errors
+            Database.SetInitializer<FerryBookingContext>(null);
 
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);

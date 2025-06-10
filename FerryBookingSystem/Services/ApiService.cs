@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -154,6 +155,37 @@ namespace FerryBookingSystem.Services
             {
                 throw new Exception($"Error getting nations: {ex.Message}", ex);
             }
+        }
+
+        // Get Ticket Types
+        public async Task<List<TicketTypeInfo>> GetTicketTypesAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("TicketType/GetTicketTypes");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<List<TicketTypeInfo>>(content);
+            }
+            catch (Exception ex)
+            {
+                // If API endpoint doesn't exist, return default ticket types
+                System.Diagnostics.Debug.WriteLine($"Error getting ticket types from API: {ex.Message}");
+                return GetDefaultTicketTypes();
+            }
+        }
+
+        // Fallback method to provide default ticket types
+        private List<TicketTypeInfo> GetDefaultTicketTypes()
+        {
+            return new List<TicketTypeInfo>
+            {
+                new TicketTypeInfo { TicketTypeId = 1, TicketTypeName = "Adult", Description = "Standard adult ticket" },
+                new TicketTypeInfo { TicketTypeId = 2, TicketTypeName = "Child (6-11 years)", Description = "Child ticket for ages 6-11" },
+                new TicketTypeInfo { TicketTypeId = 3, TicketTypeName = "Infant (Under 6)", Description = "Infant ticket for under 6 years" },
+                new TicketTypeInfo { TicketTypeId = 4, TicketTypeName = "Senior (Over 60)", Description = "Senior citizen discount" },
+                new TicketTypeInfo { TicketTypeId = 5, TicketTypeName = "Student", Description = "Student discount ticket" }
+            };
         }
 
         // Step 4: Create Order

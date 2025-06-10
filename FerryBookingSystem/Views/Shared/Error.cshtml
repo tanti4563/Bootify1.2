@@ -1,13 +1,41 @@
-﻿<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Error</title>
-</head>
-<body>
-    <hgroup>
-        <h1>Error.</h1>
-        <h2>An error occurred while processing your request.</h2>
-    </hgroup>
-</body>
-</html>
+﻿@{
+    ViewBag.Title = "Lỗi";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <div class="error-template">
+                <h1>Oops!</h1>
+                <h2>Đã xảy ra lỗi</h2>
+                <div class="error-details">
+                    Xin lỗi, đã xảy ra lỗi khi xử lý yêu cầu của bạn.
+                </div>
+                <div class="error-actions">
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg">
+                        <span class="glyphicon glyphicon-home"></span>
+                        Về trang chủ
+                    </a>
+                    <a href="@Url.Action("Contact", "Home")" class="btn btn-default btn-lg">
+                        <span class="glyphicon glyphicon-envelope"></span>
+                        Liên hệ hỗ trợ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-template {
+    padding: 40px 15px;
+    text-align: center;
+}
+.error-actions {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+.error-actions .btn {
+    margin-right: 10px;
+}
+</style>

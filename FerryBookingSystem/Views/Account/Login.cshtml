@@ -1,7 +1,7 @@
 ﻿@using FerryBookingSystem.Models
 @model LoginViewModel
 @{
-    ViewBag.Title = "Log in";
+    ViewBag.Title = "Đăng nhập";
 }
 
 <h2>@ViewBag.Title</h2>
@@ -10,14 +10,14 @@
     <div class="col-md-8">
         <div class="panel panel-primary">
             <div class="panel-heading">
-                <h3 class="panel-title">Use your account to log in</h3>
+                <h3 class="panel-title">Sử dụng tài khoản của bạn để đăng nhập</h3>
             </div>
             <div class="panel-body">
                 <section id="loginForm">
                     @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
                     {
                         @Html.AntiForgeryToken()
-                        <h4>Use your registered email and password to log in.</h4>
+                        <h4>Sử dụng email và mật khẩu đã đăng ký để đăng nhập.</h4>
                         <hr />
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                         <div class="form-group">
@@ -44,7 +44,7 @@
                         </div>
                         <div class="form-group">
                             <div class="col-md-offset-3 col-md-9">
-                                <input type="submit" value="Log in" class="btn btn-primary" />
+                                <input type="submit" value="Đăng nhập" class="btn btn-primary" />
                             </div>
                         </div>
                     }
@@ -55,20 +55,20 @@
     <div class="col-md-4">
         <div class="panel panel-info">
             <div class="panel-heading">
-                <h3 class="panel-title">New User?</h3>
+                <h3 class="panel-title">Người dùng mới?</h3>
             </div>
             <div class="panel-body">
-                <p>If you don't have an account yet, you can create one by clicking the button below.</p>
+                <p>Nếu bạn chưa có tài khoản, bạn có thể tạo một tài khoản bằng cách nhấp vào nút bên dưới.</p>
                 <p>
-                    @Html.ActionLink("Register as a new user", "Register", null, new { @class = "btn btn-info" })
+                    @Html.ActionLink("Đăng ký người dùng mới", "Register", null, new { @class = "btn btn-info" })
                 </p>
                 <hr />
-                <p><strong>Why Register?</strong></p>
+                <p><strong>Tại sao nên đăng ký?</strong></p>
                 <ul>
-                    <li>View your booking history</li>
-                    <li>Faster checkout process</li>
-                    <li>Special offers for registered users</li>
-                    <li>Get notifications about your upcoming trips</li>
+                    <li>Xem lịch sử đặt vé của bạn</li>
+                    <li>Quy trình thanh toán nhanh hơn</li>
+                    <li>Ưu đãi đặc biệt cho người dùng đã đăng ký</li>
+                    <li>Nhận thông báo về các chuyến đi sắp tới</li>
                 </ul>
             </div>
         </div>

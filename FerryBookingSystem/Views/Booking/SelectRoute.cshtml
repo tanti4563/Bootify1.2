@@ -1,18 +1,18 @@
 ﻿@model IEnumerable<FerryBookingSystem.Models.RouteInfo>
 
 @{
-    ViewBag.Title = "Select Route";
+    ViewBag.Title = "Chọn tuyến đường";
 }
 
-<h2>Select Route and Travel Details</h2>
+<h2>Chọn tuyến đường và thông tin chuyến đi</h2>
 
 @if (!Request.IsAuthenticated)
 {
     <div class="alert alert-warning">
         <p>
-            <strong>You must be logged in to book tickets.</strong>
-            Please <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("SelectRoute", "Booking") })">login</a> or
-            <a href="@Url.Action("Register", "Account")">register</a> to continue.
+            <strong>Bạn phải đăng nhập để đặt vé.</strong>
+            Vui lòng <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("SelectRoute", "Booking") })">đăng nhập</a> hoặc
+            <a href="@Url.Action("Register", "Account")">đăng ký</a> để tiếp tục.
         </p>
     </div>
 }
@@ -31,14 +31,14 @@ else
         {
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Trip Details</h3>
+                    <h3 class="panel-title">Thông tin chuyến đi</h3>
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-3 control-label">Route:</label>
+                        <label class="col-md-3 control-label">Tuyến đường:</label>
                         <div class="col-md-9">
                             <select id="routeId" name="routeId" class="form-control" required>
-                                <option value="">-- Select Route --</option>
+                                <option value="">-- Chọn tuyến đường --</option>
                                 @foreach (var route in Model)
                                 {
                                     <option value="@route.RouteId">@route.Label (@route.Abbrev)</option>
@@ -48,35 +48,35 @@ else
                     </div>
 
                     <div class="form-group">
-                        <label class="col-md-3 control-label">Trip Type:</label>
+                        <label class="col-md-3 control-label">Loại chuyến:</label>
                         <div class="col-md-9">
                             <div class="radio">
                                 <label>
-                                    <input type="radio" name="tripType" value="oneway" checked id="oneWayTrip" onclick="toggleReturnDate()"> One Way
+                                    <input type="radio" name="tripType" value="oneway" checked id="oneWayTrip" onclick="toggleReturnDate()"> Một chiều
                                 </label>
                                 <label style="margin-left: 20px;">
-                                    <input type="radio" name="tripType" value="roundtrip" id="roundTrip" onclick="toggleReturnDate()"> Round Trip
+                                    <input type="radio" name="tripType" value="roundtrip" id="roundTrip" onclick="toggleReturnDate()"> Khứ hồi
                                 </label>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="col-md-3 control-label">Departure Date:</label>
+                        <label class="col-md-3 control-label">Ngày khởi hành:</label>
                         <div class="col-md-9">
                             <input type="date" id="departDate" name="departDate" class="form-control" required min="@DateTime.Now.ToString("yyyy-MM-dd")">
                         </div>
                     </div>
 
                     <div class="form-group return-date" style="display: none;">
-                        <label class="col-md-3 control-label">Return Date:</label>
+                        <label class="col-md-3 control-label">Ngày về:</label>
                         <div class="col-md-9">
                             <input type="date" id="returnDate" name="returnDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="col-md-3 control-label">Number of Passengers:</label>
+                        <label class="col-md-3 control-label">Số lượng hành khách:</label>
                         <div class="col-md-9">
                             <input type="number" id="passengerCount" name="passengerCount" class="form-control" min="1" max="10" value="1" required>
                         </div>
@@ -84,8 +84,8 @@ else
 
                     <div class="form-group">
                         <div class="col-md-offset-3 col-md-9">
-                            <input type="submit" value="Search Voyages" class="btn btn-primary">
-                            <a href="@Url.Action("Index", "Home")" class="btn btn-default">Back to Home</a>
+                            <input type="submit" value="Tìm chuyến" class="btn btn-primary">
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-default">Về trang chủ</a>
                         </div>
                     </div>
                 </div>
@@ -98,11 +98,11 @@ else
     <div class="col-md-4">
         <div class="panel panel-info">
             <div class="panel-heading">
-                <h3 class="panel-title">Booking Information</h3>
+                <h3 class="panel-title">Thông tin đặt vé</h3>
             </div>
             <div class="panel-body">
-                <p>Select your preferred route, travel dates, and the number of passengers.</p>
-                <p>Available routes include:</p>
+                <p>Chọn tuyến đường ưa thích, ngày đi và số lượng hành khách của bạn.</p>
+                <p>Các tuyến đường có sẵn bao gồm:</p>
                 <ul>
                     @foreach (var route in Model.Take(5))
                     {
@@ -110,10 +110,10 @@ else
                     }
                     @if (Model.Count() > 5)
                     {
-                        <li>And more...</li>
+                        <li>Và nhiều tuyến khác...</li>
                     }
                 </ul>
-                <p><strong>Note:</strong> Round trip bookings allow you to select different seats for your outbound and return journeys.</p>
+                <p><strong>Lưu ý:</strong> Đặt vé khứ hồi cho phép bạn chọn ghế khác nhau cho chuyến đi và chuyến về.</p>
             </div>
         </div>
     </div>

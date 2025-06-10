@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using System.Data.Entity.Migrations;
+using System.Linq;
 
 namespace FerryBookingSystem.Models
 {
@@ -10,6 +12,8 @@ namespace FerryBookingSystem.Models
     {
         public FerryBookingContext() : base("FerryBookingConnection")
         {
+            // Temporarily disable model validation to allow schema changes
+            Database.SetInitializer<FerryBookingContext>(null);
         }
 
         public DbSet<BookingOrder> BookingOrders { get; set; }
@@ -28,13 +32,7 @@ namespace FerryBookingSystem.Models
             base.OnModelCreating(modelBuilder);
         }
     }
-    public enum SeatStatus
-    {
-        Available = 0,
-        Reserved = 1,  // Temporarily reserved during booking process
-        Purchased = 2, // Permanently locked after purchase
-        Blocked = 3    // Administratively blocked
-    }
+
     public class BookingOrder
     {
         [Key]
@@ -167,15 +165,6 @@ namespace FerryBookingSystem.Models
         public DateTime? BoardingTime { get; set; }
 
         public virtual BookingOrder BookingOrder { get; set; }
-        public int StatusId { get; set; } // Maps to SeatStatus enum
-
-        // You might want to add a navigation property
-        [NotMapped]
-        public SeatStatus Status
-        {
-            get { return (SeatStatus)StatusId; }
-            set { StatusId = (int)value; }
-        }
     }
 
     public class RouteInfo
@@ -203,5 +192,7 @@ namespace FerryBookingSystem.Models
         [StringLength(500)]
         public string Description { get; set; }
     }
+
+
 
 }

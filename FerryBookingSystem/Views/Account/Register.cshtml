@@ -1,6 +1,6 @@
 ﻿@model FerryBookingSystem.Models.RegisterViewModel
 @{
-    ViewBag.Title = "Register";
+    ViewBag.Title = "Đăng ký";
 }
 
 <h2>@ViewBag.Title</h2>
@@ -9,13 +9,13 @@
     <div class="col-md-8">
         <div class="panel panel-primary">
             <div class="panel-heading">
-                <h3 class="panel-title">Create a New Account</h3>
+                <h3 class="panel-title">Tạo tài khoản mới</h3>
             </div>
             <div class="panel-body">
                 @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
                 {
                     @Html.AntiForgeryToken()
-                    <h4>Create a new account to access additional features.</h4>
+                    <h4>Tạo tài khoản mới để truy cập các tính năng bổ sung.</h4>
                     <hr />
                     @Html.ValidationSummary("", new { @class = "text-danger" })
 
@@ -56,7 +56,7 @@
 
                     <div class="form-group">
                         <div class="col-md-offset-3 col-md-9">
-                            <input type="submit" class="btn btn-primary" value="Register" />
+                            <input type="submit" class="btn btn-primary" value="Đăng ký" />
                         </div>
                     </div>
                 }
@@ -66,19 +66,19 @@
     <div class="col-md-4">
         <div class="panel panel-info">
             <div class="panel-heading">
-                <h3 class="panel-title">Registration Benefits</h3>
+                <h3 class="panel-title">Lợi ích khi đăng ký</h3>
             </div>
             <div class="panel-body">
-                <p>By creating an account with our ferry booking system, you'll enjoy:</p>
+                <p>Bằng cách tạo tài khoản với hệ thống đặt vé tàu của chúng tôi, bạn sẽ được hưởng:</p>
                 <ul>
-                    <li>Easy access to your booking history</li>
-                    <li>Quicker booking process - no need to re-enter your details</li>
-                    <li>Updates on special offers and promotions</li>
-                    <li>Email notifications about your trips</li>
-                    <li>Ability to manage your bookings online</li>
+                    <li>Dễ dàng truy cập lịch sử đặt vé của bạn</li>
+                    <li>Quy trình đặt vé nhanh hơn - không cần nhập lại thông tin</li>
+                    <li>Cập nhật về các ưu đãi và khuyến mãi đặc biệt</li>
+                    <li>Thông báo email về các chuyến đi của bạn</li>
+                    <li>Khả năng quản lý đặt vé trực tuyến</li>
                 </ul>
                 <hr />
-                <p>Already have an account? @Html.ActionLink("Log in", "Login")</p>
+                <p>Đã có tài khoản? @Html.ActionLink("Đăng nhập", "Login")</p>
             </div>
         </div>
     </div>

@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<FerryBookingSystem.Models.VoyageInfo>
 
 @{
-    ViewBag.Title = "Available Voyages";
+    ViewBag.Title = "Chuyến tàu có sẵn";
     var returnVoyages = ViewBag.ReturnVoyages as IEnumerable<FerryBookingSystem.Models.VoyageInfo>;
     var isRoundTrip = ViewBag.IsRoundTrip;
     var departDate = ViewBag.DepartDate;
@@ -10,7 +10,7 @@
     var routeId = ViewBag.RouteId;
 }
 
-<h2>Available Voyages</h2>
+<h2>Chuyến tàu có sẵn</h2>
 
 @if (ViewBag.ErrorMessage != null)
 {
@@ -22,14 +22,14 @@
 <div class="panel panel-primary">
     <div class="panel-heading">
         <h3 class="panel-title">
-            Departure Date: @departDate.ToString("dddd, MMMM d, yyyy")
+            Ngày khởi hành: @departDate.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("vi-VN"))
         </h3>
     </div>
     <div class="panel-body">
         @if (!Model.Any())
         {
             <div class="alert alert-info">
-                No voyages available for the selected date and route. Please try a different date or route.
+                Không có chuyến tàu nào cho ngày và tuyến đường đã chọn. Vui lòng thử ngày hoặc tuyến khác.
             </div>
         }
         else
@@ -38,12 +38,12 @@
                 <table class="table table-striped table-hover">
                     <thead>
                         <tr>
-                            <th>Boat</th>
-                            <th>Type</th>
-                            <th>Departure Time</th>
-                            <th>Harbor</th>
-                            <th>Available Seats</th>
-                            <th>Action</th>
+                            <th>Tàu</th>
+                            <th>Loại</th>
+                            <th>Giờ khởi hành</th>
+                            <th>Cảng</th>
+                            <th>Ghế trống</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,11 +57,11 @@
                                 <td>
                                     @if (voyage.NoOfRemain >= passengerCount)
                                     {
-                                        <span class="label label-success">@voyage.NoOfRemain seats available</span>
+                                        <span class="label label-success">@voyage.NoOfRemain ghế trống</span>
                                     }
                                     else
                                     {
-                                        <span class="label label-danger">Only @voyage.NoOfRemain seats left</span>
+                                        <span class="label label-danger">Chỉ còn @voyage.NoOfRemain ghế</span>
                                     }
                                 </td>
                                 <td>
@@ -74,7 +74,7 @@
                                                     data-boat-id="@voyage.BoatId"
                                                     data-schedule-id="@voyage.ScheduleId"
                                                     data-depart-date="@departDate.ToString("yyyy-MM-dd")">
-                                                Select
+                                                Chọn
                                             </button>
                                         }
                                         else
@@ -88,13 +88,13 @@
                                                 boatId = voyage.BoatId,
                                                 scheduleId = voyage.ScheduleId
                                             })" class="btn btn-primary btn-sm">
-                                                Select
+                                                Chọn
                                             </a>
                                         }
                                     }
                                     else
                                     {
-                                        <span class="text-danger">Not enough seats</span>
+                                        <span class="text-danger">Không đủ ghế</span>
                                     }
                                 </td>
                             </tr>
@@ -110,29 +110,29 @@
 {
     <div class="panel panel-info">
         <div class="panel-heading">
-            <h3 class="panel-title">Return Date: @returnDate?.ToString("dddd, MMMM d, yyyy")</h3>
+            <h3 class="panel-title">Ngày về: @returnDate?.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("vi-VN"))</h3>
         </div>
         <div class="panel-body">
             @if (!returnVoyages.Any())
             {
                 <div class="alert alert-info">
-                    No return voyages available for the selected date and route. Please try a different date.
+                    Không có chuyến về nào cho ngày và tuyến đường đã chọn. Vui lòng thử ngày khác.
                 </div>
             }
             else
             {
                 <div id="returnVoyageSection" style="display: none;">
-                    <p class="text-primary">Please select an outbound voyage first</p>
+                    <p class="text-primary">Vui lòng chọn chuyến đi trước</p>
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
-                                    <th>Boat</th>
-                                    <th>Type</th>
-                                    <th>Departure Time</th>
-                                    <th>Harbor</th>
-                                    <th>Available Seats</th>
-                                    <th>Action</th>
+                                    <th>Tàu</th>
+                                    <th>Loại</th>
+                                    <th>Giờ khởi hành</th>
+                                    <th>Cảng</th>
+                                    <th>Ghế trống</th>
+                                    <th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -146,11 +146,11 @@
                                         <td>
                                             @if (voyage.NoOfRemain >= passengerCount)
                                             {
-                                                <span class="label label-success">@voyage.NoOfRemain seats available</span>
+                                                <span class="label label-success">@voyage.NoOfRemain ghế trống</span>
                                             }
                                             else
                                             {
-                                                <span class="label label-danger">Only @voyage.NoOfRemain seats left</span>
+                                                <span class="label label-danger">Chỉ còn @voyage.NoOfRemain ghế</span>
                                             }
                                         </td>
                                         <td>
@@ -161,12 +161,12 @@
                                                    data-boat-id="@voyage.BoatId"
                                                    data-schedule-id="@voyage.ScheduleId"
                                                    data-return-date="@returnDate?.ToString(" yyyy-MM-dd")">
-                                                    Select
+                                                    Chọn
                                                 </a>
                                             }
                                             else
                                             {
-                                                <span class="text-danger">Not enough seats</span>
+                                                <span class="text-danger">Không đủ ghế</span>
                                             }
                                         </td>
                                     </tr>
@@ -181,7 +181,7 @@
 }
 
 <div>
-    <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-default">Back to Route Selection</a>
+    <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-default">Quay lại chọn tuyến</a>
 </div>
 
 @section Scripts {
@@ -240,7 +240,7 @@
                         + '&isRoundTrip=true'
                         + '&passengerCount=@passengerCount';
                 } else {
-                    alert('Please select an outbound voyage first');
+                    alert('Vui lòng chọn chuyến đi trước');
                 }
             });
         });

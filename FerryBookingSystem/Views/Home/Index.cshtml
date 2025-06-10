@@ -1,26 +1,26 @@
 ﻿@model IEnumerable<FerryBookingSystem.Models.RouteInfo>
 
 @{
-    ViewBag.Title = "Ferry Booking System";
+    ViewBag.Title = "Trang chủ";
 }
 
 <div class="jumbotron">
-    <h1>Ferry Booking System</h1>
-    <p class="lead">Welcome to the Ferry Booking System. Book your tickets easily online!</p>
+    <h1>Boatify - Hệ thống đặt vé tàu</h1>
+    <p class="lead">Chào mừng bạn đến với Boatify. Đặt vé tàu dễ dàng trực tuyến!</p>
 
     @if (Request.IsAuthenticated)
     {
-        <p><a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-primary btn-lg">Book Now &raquo;</a></p>
+        <p><a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-primary btn-lg">Đặt vé ngay &raquo;</a></p>
     }
     else
     {
         <p>
-            <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("SelectRoute", "Booking") })" class="btn btn-primary btn-lg">Login to Book &raquo;</a>
-            <a href="@Url.Action("Register", "Account")" class="btn btn-default btn-lg">Register &raquo;</a>
+            <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("SelectRoute", "Booking") })" class="btn btn-primary btn-lg">Đăng nhập để đặt vé &raquo;</a>
+            <a href="@Url.Action("Register", "Account")" class="btn btn-default btn-lg">Đăng ký &raquo;</a>
         </p>
         <div class="alert alert-info">
-            <p><strong>Please login or register to book ferry tickets.</strong></p>
-            <p>Creating an account gives you access to your booking history and special offers!</p>
+            <p><strong>Vui lòng đăng nhập hoặc đăng ký để đặt vé tàu.</strong></p>
+            <p>Tạo tài khoản để xem lịch sử đặt vé và nhận các ưu đãi đặc biệt!</p>
         </div>
     }
 </div>
@@ -31,21 +31,21 @@
         <div class="col-md-4">
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Welcome Back, @User.Identity.Name!</h3>
+                    <h3 class="panel-title">Chào mừng trở lại, @User.Identity.Name!</h3>
                 </div>
                 <div class="panel-body">
-                    <p>Thank you for using our ferry booking system.</p>
-                    <p><a href="@Url.Action("MyBookings", "Booking")" class="btn btn-info">View My Bookings</a></p>
+                    <p>Cảm ơn bạn đã sử dụng hệ thống đặt vé tàu của chúng tôi.</p>
+                    <p><a href="@Url.Action("MyBookings", "Booking")" class="btn btn-info">Xem vé của tôi</a></p>
                 </div>
             </div>
         </div>
 
         <div class="col-md-8">
-            <h2>Available Routes</h2>
+            <h2>Tuyến đường có sẵn</h2>
 
             @if (!Model.Any())
             {
-                <p>No routes available at the moment. Please try again later.</p>
+                <p>Hiện tại không có tuyến đường nào. Vui lòng thử lại sau.</p>
 
                 if (ViewBag.ErrorMessage != null)
                 {
@@ -59,9 +59,9 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Route</th>
-                            <th>Code</th>
-                            <th>Action</th>
+                            <th>Tuyến đường</th>
+                            <th>Mã</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -71,7 +71,7 @@
                                 <td>@route.Label</td>
                                 <td>@route.Abbrev</td>
                                 <td>
-                                    <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-sm btn-primary">Book This Route</a>
+                                    <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-sm btn-primary">Đặt tuyến này</a>
                                 </td>
                             </tr>
                         }
@@ -85,11 +85,11 @@ else
 {
     <div class="row">
         <div class="col-md-12">
-            <h2>Available Routes</h2>
+            <h2>Tuyến đường có sẵn</h2>
 
             @if (!Model.Any())
             {
-                <p>No routes available at the moment. Please try again later.</p>
+                <p>Hiện tại không có tuyến đường nào. Vui lòng thử lại sau.</p>
 
                 if (ViewBag.ErrorMessage != null)
                 {
@@ -103,9 +103,9 @@ else
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Route</th>
-                            <th>Code</th>
-                            <th>Action</th>
+                            <th>Tuyến đường</th>
+                            <th>Mã</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -115,7 +115,7 @@ else
                                 <td>@route.Label</td>
                                 <td>@route.Abbrev</td>
                                 <td>
-                                    <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-sm btn-primary">Book This Route</a>
+                                    <a href="@Url.Action("SelectRoute", "Booking")" class="btn btn-sm btn-primary">Đặt tuyến này</a>
                                 </td>
                             </tr>
                         }
@@ -124,7 +124,7 @@ else
             }
 
             <div class="alert alert-info">
-                <p><strong>Note:</strong> @Html.ActionLink("Sign up", "Register", "Account") for an account to view your booking history and get access to special offers!</p>
+                <p><strong>Lưu ý:</strong> @Html.ActionLink("Đăng ký", "Register", "Account") tài khoản để xem lịch sử đặt vé và nhận các ưu đãi đặc biệt!</p>
             </div>
         </div>
     </div>

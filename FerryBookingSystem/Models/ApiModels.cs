@@ -48,6 +48,15 @@ namespace FerryBookingSystem.Models
         public int NationId { get; set; }
         public string Label { get; set; }
         public string Abbrev { get; set; }
+        public string NationNm { get; set; } // Alternative property name
+    }
+
+    public class TicketTypeInfo
+    {
+        public int TicketTypeId { get; set; }
+        public string TicketTypeName { get; set; }
+        public string Description { get; set; }
+        public decimal? PriceMultiplier { get; set; } // For future pricing calculations
     }
 
     // API Request Models
@@ -208,4 +217,5 @@ namespace FerryBookingSystem.Models
         public DateTime? ReturnDate { get; set; }
         public VoyageInfo VoyageInfo { get; set; }
     }
+
 }

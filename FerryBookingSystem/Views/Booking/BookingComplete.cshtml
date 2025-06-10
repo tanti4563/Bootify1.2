@@ -1,71 +1,591 @@
 ﻿@model FerryBookingSystem.Models.BookingOrder
 
 @{
-    ViewBag.Title = "Booking Complete";
+    ViewBag.Title = "Xác nhận đặt vé";
     var isApiResult = ViewBag.ApiResult != null;
     dynamic bookingData = isApiResult ? ViewBag.ApiResult : Model;
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container">
+@section Styles {
+    <link href="~/css/Seatmap.css" rel="stylesheet" />
+    <style>
+    .booking-header {
+        background: linear-gradient(135deg, #ef5222, #ff6b3d);
+        color: white;
+        padding: 40px 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(239, 82, 34, 0.3);
+    }
+    .booking-code {
+        font-size: 24px;
+        font-weight: bold;
+        background: rgba(255,255,255,0.2);
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+    .trip-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: box-shadow 0.3s ease;
+    }
+    .trip-card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    }
+    .trip-card h5 {
+        color: #2c3e50;
+        border-bottom: 3px solid #ef5222;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .filter-sidebar {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .filter-sidebar h5 {
+        color: #2c3e50;
+        border-bottom: 3px solid #ef5222;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .text-type {
+        color: #6c757d;
+        font-size: 14px;
+    }
+    .title-modal {
+        color: #495057;
+        font-weight: 500;
+    }
+    .text-green {
+        color: #ef5222;
+        font-weight: 600;
+    }
+    .passenger-card {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: transform 0.2s ease;
+    }
+    .passenger-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .seat-badge {
+        background: #ef5222;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+    .ticket-badge {
+        background: #17a2b8;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+    .price-highlight {
+        color: #ef5222;
+        font-weight: 700;
+        font-size: 20px;
+    }
+    .qr-code {
+        text-align: center;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+    .booking-button {
+        background: #ef5222;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+    .booking-button:hover {
+        background: #d63916;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 82, 34, 0.3);
+    }
+    .cancel-button {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+    .cancel-button:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-paid {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    @@media print {
+        .no-print { display: none !important; }
+        .booking-header {
+            background: #ef5222 !important;
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
+        }
+        .trip-card, .filter-sidebar {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+        }
+    }
+    @@media (max-width: 768px) {
+        .booking-header {
+            padding: 30px 15px;
+        }
+        .booking-code {
+            font-size: 22px;
+            padding: 15px;
+        }
+        .trip-card, .filter-sidebar {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    }
+    </style>
+}
+
+<div class="container mt-4">
+    <!-- Tiêu đề xác nhận đặt vé -->
+    <div class="booking-header">
+        <h1><span class="material-symbols-rounded" style="font-size: 48px; vertical-align: middle;">check_circle</span> Xác nhận đặt vé!</h1>
+        <p class="lead">Đặt vé phà của bạn đã được xác nhận thành công và thanh toán đã được xử lý.</p>
+        <div class="booking-code">
+            Mã đặt vé: @bookingData.BookingCode
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Cột trái: Thông tin đặt vé -->
+        <div class="col-lg-8">
+            <!-- Thông tin khách hàng -->
+            <div class="trip-card">
+                <h5><span class="material-symbols-rounded">person</span> Thông tin khách hàng</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Họ và tên:</strong></td>
+                        <td>@(isApiResult ? bookingData.CustomerNm ?? bookingData.Customer : bookingData.Booker)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Số điện thoại:</strong></td>
+                        <td>@(isApiResult ? bookingData.CustomerPhone : bookingData.ContactNo)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>@(isApiResult ? bookingData.CustomerEmail : bookingData.Email)</td>
+                    </tr>
+                    @if (isApiResult && !string.IsNullOrEmpty(bookingData.Buyer))
+                    {
+                        <tr>
+                            <td><strong>Tên hóa đơn:</strong></td>
+                            <td>@bookingData.Buyer</td>
+                        </tr>
+                    }
+                    @if (isApiResult && !string.IsNullOrEmpty(bookingData.CompanyNm))
+                    {
+                        <tr>
+                            <td><strong>Công ty:</strong></td>
+                            <td>@bookingData.CompanyNm</td>
+                        </tr>
+                    }
+                    @if (isApiResult && !string.IsNullOrEmpty(bookingData.Taxcode))
+                    {
+                        <tr>
+                            <td><strong>Mã số thuế:</strong></td>
+                            <td>@bookingData.Taxcode</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+
+            <!-- Thông tin chuyến đi -->
+            <div class="trip-card">
+                <h5><span class="material-symbols-rounded">directions_boat</span> Thông tin chuyến đi</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Số đơn hàng:</strong></td>
+                        <td>@(isApiResult ? bookingData.OrderNo : bookingData.OrderNo)</td>
+                    </tr>
+                    @if (isApiResult && !string.IsNullOrEmpty(bookingData.RouteNm))
+                    {
+                        <tr>
+                            <td><strong>Tuyến đường:</strong></td>
+                            <td>@bookingData.RouteNm</td>
+                        </tr>
+                    }
+                    @if (isApiResult && !string.IsNullOrEmpty(bookingData.BoatNm))
+                    {
+                        <tr>
+                            <td><strong>Tên tàu:</strong></td>
+                            <td>@bookingData.BoatNm</td>
+                        </tr>
+                    }
+                    @if (isApiResult && !string.IsNullOrEmpty(bookingData.DepartDate))
+                    {
+                        <tr>
+                            <td><strong>Ngày khởi hành:</strong></td>
+                            <td>@DateTime.Parse(bookingData.DepartDate).ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("vi-VN"))</td>
+                        </tr>
+                    }
+                    else if (!isApiResult)
+                    {
+                        <tr>
+                            <td><strong>Ngày khởi hành:</strong></td>
+                            <td>@Model.DepartDate.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("vi-VN"))</td>
+                        </tr>
+                    }
+                    @if (isApiResult && !string.IsNullOrEmpty(bookingData.DepartTime))
+                    {
+                        <tr>
+                            <td><strong>Giờ khởi hành:</strong></td>
+                            <td>@bookingData.DepartTime</td>
+                        </tr>
+                    }
+                    @if (isApiResult)
+                    {
+                        <tr>
+                            <td><strong>Số lượng vé:</strong></td>
+                            <td>@bookingData.NoOfTickets vé</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td><strong>Số lượng vé:</strong></td>
+                            <td>@Model.TotalNumber vé</td>
+                        </tr>
+                    }
+                    @if (!isApiResult && Model.IsRoundTrip)
+                    {
+                        <tr>
+                            <td><strong>Loại chuyến:</strong></td>
+                            <td><span class="badge bg-info">Khứ hồi</span></td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+
+        <!-- Cột phải: Thông tin thanh toán -->
+        <div class="col-lg-4">
+            <!-- Tóm tắt thanh toán -->
+            <div class="filter-sidebar">
+                <h5 class="fw-bold mb-2"><span class="material-symbols-rounded">payment</span> Chi tiết thanh toán</h5>
+                <ul class="list-unstyled">
+                    @if (isApiResult && bookingData.TotalAmt != null)
+                    {
+                        <li class="text-type d-flex justify-content-between">
+                            <span>Giá vé:</span>
+                            <span class="price">@bookingData.TotalAmt.ToString("N0")đ</span>
+                        </li>
+                    }
+                    @if (isApiResult && bookingData.FeeHarborAmt != null && bookingData.FeeHarborAmt > 0)
+                    {
+                        <li class="text-type d-flex justify-content-between">
+                            <span>Phí cảng:</span>
+                            <span class="text-type">@bookingData.FeeHarborAmt.ToString("N0")đ</span>
+                        </li>
+                    }
+                    <li class="text-type d-flex justify-content-between">
+                        <span>Phí thanh toán:</span>
+                        <span class="text-type">0đ</span>
+                    </li>
+                    <hr class="my-1" />
+                    <li class="mt-2 text-green d-flex justify-content-between fw-semibold">
+                        <span>Tổng tiền:</span>
+                        <span class="price">@(isApiResult ? bookingData.Total : bookingData.TotalAmount).ToString("N0")đ</span>
+                    </li>
+                    <li class="text-type d-flex justify-content-between">
+                        <span>Trạng thái:</span>
+                        <span class="text-green">
+                            @(isApiResult ? "Đã thanh toán" : (bookingData.PaymentStatus == "Paid" ? "Đã thanh toán" : bookingData.PaymentStatus))
+                        </span>
+                    </li>
+                    <li class="text-type d-flex justify-content-between">
+                        <span>Ngày đặt:</span>
+                        <span class="title-modal">@(isApiResult ? DateTime.Now : Model.CreatedDate).ToString("dd/MM/yyyy HH:mm")</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Thông tin quan trọng -->
+            <div class="filter-sidebar mt-4">
+                <h5 class="fw-bold mb-2"><span class="material-symbols-rounded">info</span> Thông tin quan trọng</h5>
+                <ul class="list-unstyled">
+                    <li class="text-type d-flex align-items-center gap-2 mb-2">
+                        <span class="material-symbols-rounded text-warning">schedule</span>
+                        Vui lòng có mặt tại bến ít nhất 30 phút trước giờ khởi hành
+                    </li>
+                    <li class="text-type d-flex align-items-center gap-2 mb-2">
+                        <span class="material-symbols-rounded text-info">badge</span>
+                        Mang theo giấy tờ tùy thân hợp lệ để lên tàu
+                    </li>
+                    <li class="text-type d-flex align-items-center gap-2 mb-2">
+                        <span class="material-symbols-rounded text-primary">print</span>
+                        In xác nhận này hoặc lưu trên thiết bị di động
+                    </li>
+                    <li class="text-type d-flex align-items-center gap-2 mb-2">
+                        <span class="material-symbols-rounded text-success">phone</span>
+                        Liên hệ dịch vụ khách hàng để thay đổi hoặc hủy vé
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phần thông tin hành khách -->
     <div class="row">
         <div class="col-md-12">
-            <div class="panel panel-success">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Booking Confirmed!</h3>
-                </div>
-                <div class="panel-body">
-                    <p>Your booking has been successfully confirmed.</p>
+            <div class="trip-card">
+                <h5><span class="material-symbols-rounded">group</span> Thông tin hành khách</h5>
 
-                    <div class="alert alert-success">
-                        <h4>
-                            <span class="glyphicon glyphicon-ok-circle"></span>
-                            Booking Code: <strong>@bookingData.BookingCode</strong>
-                        </h4>
+                @if (isApiResult && bookingData.TicketOrders != null && bookingData.TicketOrders.Count > 0)
+                {
+                    <!-- Kết quả API - Dữ liệu hành khách chi tiết -->
+                    for (int i = 0; i < bookingData.TicketOrders.Count; i++)
+                    {
+                        var ticket = bookingData.TicketOrders[i];
+                        <div class="passenger-card">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5>
+                                        <strong>@ticket.FullNm</strong>
+                                        <span class="seat-badge">Ghế @ticket.SeatNm</span>
+                                        @if (!string.IsNullOrEmpty(ticket.PassengerTypeNm))
+                                        {
+                                            <span class="ticket-badge">@ticket.PassengerTypeNm</span>
+                                        }
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Số CMND/CCCD:</strong> @ticket.IdNo</p>
+                                            @if (!string.IsNullOrEmpty(ticket.YOB))
+                                            {
+                                                <p><strong>Ngày sinh:</strong> @ticket.YOB</p>
+                                            }
+                                            @if (!string.IsNullOrEmpty(ticket.POB))
+                                            {
+                                                <p><strong>Nơi sinh:</strong> @ticket.POB</p>
+                                            }
+                                        </div>
+                                        <div class="col-md-6">
+                                            @if (!string.IsNullOrEmpty(ticket.Nation))
+                                            {
+                                                <p><strong>Quốc tịch:</strong> @ticket.Nation</p>
+                                            }
+                                            @if (!string.IsNullOrEmpty(ticket.PhoneNo))
+                                            {
+                                                <p><strong>Số điện thoại:</strong> @ticket.PhoneNo</p>
+                                            }
+                                            @if (!string.IsNullOrEmpty(ticket.Email))
+                                            {
+                                                <p><strong>Email:</strong> @ticket.Email</p>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-right">
+                                    <h4 class="price-highlight">@ticket.UnitPrice.ToString("N0")đ</h4>
+                                    @if (!string.IsNullOrEmpty(ticket.QRCode))
+                                    {
+                                        <div class="qr-code">
+                                            <small>Mã QR: @ticket.QRCode</small>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else if (!isApiResult && Model.Tickets != null && Model.Tickets.Any())
+                {
+                    <!-- Kết quả cơ sở dữ liệu - Dữ liệu vé nội bộ -->
+                    foreach (var ticket in Model.Tickets.OrderBy(t => t.TripType).ThenBy(t => t.No))
+                    {
+                        <div class="passenger-card">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5>
+                                        <strong>@ticket.FullNm</strong>
+                                        @if (!string.IsNullOrEmpty(ticket.SeatNm))
+                                        {
+                                            <span class="seat-badge">Ghế @ticket.SeatNm</span>
+                                        }
+                                        <span class="ticket-badge">@ticket.TicketClass</span>
+                                        @if (ticket.TripType == 1)
+                                        {
+                                            <span class="badge bg-info">Khứ hồi</span>
+                                        }
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Số CMND/CCCD:</strong> @ticket.IdNo</p>
+                                            @if (!string.IsNullOrEmpty(ticket.YOB))
+                                            {
+                                                <p><strong>Ngày sinh:</strong> @ticket.YOB</p>
+                                            }
+                                            @if (!string.IsNullOrEmpty(ticket.POB))
+                                            {
+                                                <p><strong>Nơi sinh:</strong> @ticket.POB</p>
+                                            }
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Giới tính:</strong> @(ticket.Gender == 1 ? "Nam" : "Nữ")</p>
+                                            @if (!string.IsNullOrEmpty(ticket.PhoneNo))
+                                            {
+                                                <p><strong>Số điện thoại:</strong> @ticket.PhoneNo</p>
+                                            }
+                                            @if (!string.IsNullOrEmpty(ticket.Email))
+                                            {
+                                                <p><strong>Email:</strong> @ticket.Email</p>
+                                            }
+                                            <p><strong>Trạng thái lên tàu:</strong>
+                                                <span class="status-badge @(ticket.BoardingStatus == "Boarded" ? "status-paid" : "status-pending")">
+                                                    @(ticket.BoardingStatus == "Boarded" ? "Đã lên tàu" : "Chưa lên tàu")
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-right">
+                                    <h4 class="price-highlight">@ticket.PriceWithVAT.ToString("N0")đ</h4>
+                                    @if (!string.IsNullOrEmpty(ticket.QRCode))
+                                    {
+                                        <div class="qr-code">
+                                            <small>Mã QR: @ticket.QRCode</small>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <span class="material-symbols-rounded">info</span>
+                        Thông tin hành khách đang được xử lý và sẽ có sẵn trong thời gian ngắn.
                     </div>
+                }
+            </div>
+        </div>
+    </div>
 
-                    <h3>Booking Details</h3>
-                    <table class="table table-striped">
-                        <tr>
-                            <th>Order Number:</th>
-                            <td>@(isApiResult ? bookingData.OrderNo : bookingData.OrderNo)</td>
-                        </tr>
-                        <tr>
-                            <th>Customer Name:</th>
-                            <td>@(isApiResult ? bookingData.CustomerName : bookingData.Booker)</td>
-                        </tr>
-                        <tr>
-                            <th>Contact Information:</th>
-                            <td>
-                                @(isApiResult ? bookingData.PhoneNumber : bookingData.ContactNo)<br />
-                                @(isApiResult ? bookingData.Email : bookingData.Email)
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Total Amount:</th>
-                            <td>@(isApiResult ? bookingData.Total : bookingData.TotalAmount).ToString("N0") VND</td>
-                        </tr>
-                        <tr>
-                            <th>Payment Status:</th>
-                            <td>
-                                <span class="label label-success">
-                                    @(isApiResult ? bookingData.PaymentStatus : bookingData.PaymentStatus)
-                                </span>
-                            </td>
-                        </tr>
-                    </table>
+    <!-- Nút hành động -->
+    <div class="row no-print">
+        <div class="col-md-12">
+            <div class="trip-card d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 id="total-price" class="price-highlight">@(isApiResult ? bookingData.Total : bookingData.TotalAmount).ToString("N0")đ</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="@Url.Action("Index", "Home")" class="cancel-button">
+                        <span class="material-symbols-rounded">home</span> Trang chủ
+                    </a>
+                    <a href="javascript:window.print();" class="booking-button">
+                        <span class="material-symbols-rounded">print</span> In vé
+                    </a>
+                    <a href="@Url.Action("MyBookings", "Booking")" class="booking-button">
+                        <span class="material-symbols-rounded">confirmation_number</span> Vé của tôi
+                    </a>
+                    @if (!string.IsNullOrEmpty(bookingData.BookingCode))
+                    {
+                        <a href="@Url.Action("BookingDetail", "Booking", new { bookingCode = bookingData.BookingCode })" class="cancel-button">
+                            <span class="material-symbols-rounded">visibility</span> Chi tiết
+                        </a>
+                    }
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Additional booking details here -->
-
-    <div class="row">
+    <!-- Thông tin hỗ trợ -->
+    <div class="row no-print">
         <div class="col-md-12">
-            <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Return to Home</a>
-            <a href="javascript:window.print();" class="btn btn-default">
-                <span class="glyphicon glyphicon-print"></span> Print
-            </a>
+            <div class="filter-sidebar">
+                <h5 class="fw-bold mb-2"><span class="material-symbols-rounded">support_agent</span> Cần hỗ trợ?</h5>
+                <ul class="list-unstyled">
+                    <li class="text-type d-flex justify-content-between">
+                        <span>Dịch vụ khách hàng:</span>
+                        <span class="title-modal">1900-1234</span>
+                    </li>
+                    <li class="text-type d-flex justify-content-between">
+                        <span>Email:</span>
+                        <span class="title-modal">support@boatify.vn</span>
+                    </li>
+                    <li class="text-type d-flex justify-content-between">
+                        <span>Giờ làm việc:</span>
+                        <span class="title-modal">Thứ 2 - CN, 6:00 - 22:00</span>
+                    </li>
+                    <li class="text-type d-flex justify-content-between">
+                        <span>Mã tham chiếu:</span>
+                        <span class="text-green">@bookingData.BookingCode</span>
+                    </li>
+                    <li class="text-type d-flex justify-content-between">
+                        <span>Thời gian tạo:</span>
+                        <span class="title-modal">@DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>

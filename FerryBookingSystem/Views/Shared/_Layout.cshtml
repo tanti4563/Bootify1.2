@@ -3,9 +3,10 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Ferry Booking System</title>
+    <title>@ViewBag.Title - Boatify</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+    @RenderSection("Styles", required: false)
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -16,14 +17,14 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink("Ferry Booking System", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                @Html.ActionLink("Boatify", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                    <li>@Html.ActionLink("Book Now", "SelectRoute", "Booking")</li>
-                    <li>@Html.ActionLink("About", "About", "Home")</li>
-                    <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                    <li>@Html.ActionLink("Trang chủ", "Index", "Home")</li>
+                    <li>@Html.ActionLink("Đặt vé ngay", "SelectRoute", "Booking")</li>
+                    <li>@Html.ActionLink("Về chúng tôi", "About", "Home")</li>
+                    <li>@Html.ActionLink("Liên hệ", "Contact", "Home")</li>
                 </ul>
                 <!-- User authentication links -->
                 @Html.Partial("_LoginPartial")
@@ -34,8 +35,8 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - Ferry Booking System</p>
-            <p class="text-muted">Current Date and Time (UTC): @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")</p>
+            <p>&copy; @DateTime.Now.Year - Boatify. Tất cả quyền được bảo lưu.</p>
+            <p class="text-muted">Ngày và giờ hiện tại: @DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")</p>
         </footer>
     </div>
 

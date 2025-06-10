@@ -1,13 +1,15 @@
 ﻿@model FerryBookingSystem.Models.SeatSelectionViewModel
 
 @{
-    ViewBag.Title = "Select Seats";
+    ViewBag.Title = "Chọn ghế";
     var returnSeats = ViewBag.ReturnSeats as List<FerryBookingSystem.Models.SeatInfo>;
     var returnTicketPrices = ViewBag.ReturnTicketPrices as List<FerryBookingSystem.Models.TicketPriceInfo>;
     var returnVoyageInfo = ViewBag.ReturnVoyageInfo as FerryBookingSystem.Models.VoyageInfo;
+    var occupiedSeats = ViewBag.OccupiedSeats as List<FerryBookingSystem.Controllers.BookingController.OccupiedSeatInfo> ?? new List<FerryBookingSystem.Controllers.BookingController.OccupiedSeatInfo>();
+    var occupiedReturnSeats = ViewBag.OccupiedReturnSeats as List<FerryBookingSystem.Controllers.BookingController.OccupiedSeatInfo> ?? new List<FerryBookingSystem.Controllers.BookingController.OccupiedSeatInfo>();
 }
 
-<h2>Select Your Seats</h2>
+<h2>Chọn ghế của bạn</h2>
 
 @if (ViewBag.ErrorMessage != null)
 {
@@ -16,9 +18,18 @@
     </div>
 }
 
+@* Hiển thị thông báo lỗi từ TempData *@
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>Lỗi:</strong> @TempData["ErrorMessage"]
+    </div>
+}
+
 <div class="row">
     <div class="col-md-8">
-        <form id="seatSelectionForm" method="post" action="@Url.Action("PassengerDetails", "Booking")">
+        <form id="seatSelectionForm" method="post" action="@Url.Action("CreateBooking", "Booking")">
             <input type="hidden" name="voyageId" value="@Model.VoyageId" />
             <input type="hidden" name="departDate" value="@Model.DepartDate.ToString("yyyy-MM-dd")" />
             <input type="hidden" name="routeId" value="@(Model.VoyageInfo?.RouteId ?? 0)" />
@@ -36,18 +47,19 @@
 
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Outbound Journey - @Model.DepartDate.ToString("dddd, MMMM d, yyyy") - @(Model.VoyageInfo?.DepartTime)</h3>
+                    <h3 class="panel-title">Chuyến đi - @Model.DepartDate.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("vi-VN")) - @(Model.VoyageInfo?.DepartTime)</h3>
                 </div>
                 <div class="panel-body">
                     <div class="alert alert-info">
-                        <strong>Please select @Model.PassengerCount seat(s) for your outbound journey.</strong>
-                        <span id="outboundSeatCounter" class="badge">0</span> selected.
+                        <strong>Vui lòng chọn @Model.PassengerCount ghế cho chuyến đi của bạn.</strong>
+                        <span id="outboundSeatCounter" class="badge">0</span> đã chọn.
                     </div>
 
                     <div class="seat-legend">
-                        <span class="seat available"></span> Available
-                        <span class="seat selected"></span> Selected
-                        <span class="seat premium"></span> Premium
+                        <span class="seat available"></span> Có sẵn
+                        <span class="seat occupied"></span> Đã đặt
+                        <span class="seat selected"></span> Đã chọn
+                        <span class="seat premium"></span> Hạng cao
                     </div>
 
                     <div class="seat-map">
@@ -58,18 +70,22 @@
                         @foreach (var deck in decks)
                         {
                             <div class="deck-section">
-                                <h4>Deck @deck.Key</h4>
+                                <h4>Tầng @deck.Key</h4>
                                 <div class="deck">
                                     @foreach (var seat in deck)
                                     {
-                                        var seatClass = seat.IsVIP ? "seat premium" : "seat available";
+                                        var isOccupied = occupiedSeats.Any(o => o.PositionId == seat.PositionId || o.SeatNm == seat.SeatNm);
+                                        var seatClass = isOccupied ? "seat occupied" : (seat.IsVIP ? "seat premium" : "seat available");
+                                        var title = isOccupied ? $"{seat.SeatNm} (Đã đặt)" : $"{seat.SeatNm} ({seat.TicketClass})";
+
                                         <div class="@seatClass"
                                              data-seat-id="@seat.SeatId"
                                              data-position-id="@seat.PositionId"
                                              data-seat-name="@seat.SeatNm"
                                              data-ticket-class="@seat.TicketClass"
                                              data-is-vip="@seat.IsVIP.ToString().ToLower()"
-                                             title="@seat.SeatNm (@seat.TicketClass)">
+                                             data-is-occupied="@isOccupied.ToString().ToLower()"
+                                             title="@title">
                                             @seat.SeatNm
                                         </div>
                                     }
@@ -84,12 +100,12 @@
             {
                 <div class="panel panel-info">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Return Journey - @Model.ReturnDate?.ToString("dddd, MMMM d, yyyy") - @(returnVoyageInfo?.DepartTime)</h3>
+                        <h3 class="panel-title">Chuyến về - @Model.ReturnDate?.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("vi-VN")) - @(returnVoyageInfo?.DepartTime)</h3>
                     </div>
                     <div class="panel-body">
                         <div class="alert alert-info">
-                            <strong>Please select @Model.PassengerCount seat(s) for your return journey.</strong>
-                            <span id="returnSeatCounter" class="badge">0</span> selected.
+                            <strong>Vui lòng chọn @Model.PassengerCount ghế cho chuyến về của bạn.</strong>
+                            <span id="returnSeatCounter" class="badge">0</span> đã chọn.
                         </div>
 
                         <div class="seat-map">
@@ -100,18 +116,22 @@
                             @foreach (var deck in returnDecks)
                             {
                                 <div class="deck-section">
-                                    <h4>Deck @deck.Key</h4>
+                                    <h4>Tầng @deck.Key</h4>
                                     <div class="deck return-deck">
                                         @foreach (var seat in deck)
                                         {
-                                            var seatClass = seat.IsVIP ? "seat premium" : "seat available";
+                                            var isOccupied = occupiedReturnSeats.Any(o => o.PositionId == seat.PositionId || o.SeatNm == seat.SeatNm);
+                                            var seatClass = isOccupied ? "seat occupied" : (seat.IsVIP ? "seat premium" : "seat available");
+                                            var title = isOccupied ? $"{seat.SeatNm} (Đã đặt)" : $"{seat.SeatNm} ({seat.TicketClass})";
+
                                             <div class="@seatClass return-seat"
                                                  data-seat-id="@seat.SeatId"
                                                  data-position-id="@seat.PositionId"
                                                  data-seat-name="@seat.SeatNm"
                                                  data-ticket-class="@seat.TicketClass"
                                                  data-is-vip="@seat.IsVIP.ToString().ToLower()"
-                                                 title="@seat.SeatNm (@seat.TicketClass)">
+                                                 data-is-occupied="@isOccupied.ToString().ToLower()"
+                                                 title="@title">
                                                 @seat.SeatNm
                                             </div>
                                         }
@@ -126,25 +146,25 @@
             <div class="fare-summary">
                 <div class="panel panel-success">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Fare Summary</h3>
+                        <h3 class="panel-title">Tóm tắt giá vé</h3>
                     </div>
                     <div class="panel-body">
                         <div id="outboundSummary">
-                            <h4>Outbound Journey</h4>
+                            <h4>Chuyến đi</h4>
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Seat</th>
-                                        <th>Class</th>
-                                        <th>Price</th>
+                                        <th>Ghế</th>
+                                        <th>Hạng</th>
+                                        <th>Giá</th>
                                     </tr>
                                 </thead>
                                 <tbody id="outboundSummaryBody">
-                                    <tr><td colspan="3">No seats selected</td></tr>
+                                    <tr><td colspan="3">Chưa chọn ghế nào</td></tr>
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="2">Subtotal:</th>
+                                        <th colspan="2">Tạm tính:</th>
                                         <th id="outboundTotal">0.00</th>
                                     </tr>
                                 </tfoot>
@@ -154,21 +174,21 @@
                         @if (Model.IsRoundTrip && Model.ReturnVoyageId.HasValue && Model.ReturnDate.HasValue)
                         {
                             <div id="returnSummary">
-                                <h4>Return Journey</h4>
+                                <h4>Chuyến về</h4>
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th>Seat</th>
-                                            <th>Class</th>
-                                            <th>Price</th>
+                                            <th>Ghế</th>
+                                            <th>Hạng</th>
+                                            <th>Giá</th>
                                         </tr>
                                     </thead>
                                     <tbody id="returnSummaryBody">
-                                        <tr><td colspan="3">No seats selected</td></tr>
+                                        <tr><td colspan="3">Chưa chọn ghế nào</td></tr>
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="2">Subtotal:</th>
+                                            <th colspan="2">Tạm tính:</th>
                                             <th id="returnTotal">0.00</th>
                                         </tr>
                                     </tfoot>
@@ -179,7 +199,7 @@
                         <div id="totalSummary">
                             <table class="table">
                                 <tr>
-                                    <th>Total Fare:</th>
+                                    <th>Tổng tiền:</th>
                                     <th id="grandTotal">0.00</th>
                                 </tr>
                             </table>
@@ -188,9 +208,66 @@
                 </div>
             </div>
 
+            <!-- Phần thông tin hành khách -->
+            <div id="passengerInfoSection" style="display: none;">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Thông tin hành khách</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="alert alert-info">
+                            <strong>Vui lòng điền thông tin hành khách cho mỗi ghế đã chọn.</strong>
+                        </div>
+
+                        <!-- Form hành khách chuyến đi -->
+                        <div id="outboundPassengerForms">
+                            <h4>Hành khách chuyến đi</h4>
+                            <div id="outboundPassengerContainer"></div>
+                        </div>
+
+                        <!-- Form hành khách chuyến về -->
+                        <div id="returnPassengerForms" style="display: none;">
+                            <h4>Hành khách chuyến về</h4>
+                            <div id="returnPassengerContainer"></div>
+                        </div>
+
+                        <!-- Thông tin liên hệ -->
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4>Thông tin liên hệ</h4>
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="contactName">Tên người liên hệ *</label>
+                                            <input type="text" class="form-control" id="contactName" name="ContactName" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="contactPhone">Số điện thoại liên hệ *</label>
+                                            <input type="tel" class="form-control" id="contactPhone" name="ContactPhone" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="contactEmail">Email liên hệ *</label>
+                                            <input type="email" class="form-control" id="contactEmail" name="ContactEmail" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
-                <button type="submit" class="btn btn-primary" id="continueButton" disabled>Continue to Passenger Details</button>
-                <a href="@Url.Action("SearchVoyages", "Booking")" class="btn btn-default">Back to Voyage Selection</a>
+                <button type="submit" class="btn btn-primary" id="continueButton" disabled>Hoàn tất đặt vé</button>
+                <a href="@Url.Action("SearchVoyages", "Booking")" class="btn btn-default">Quay lại chọn chuyến</a>
             </div>
         </form>
     </div>
@@ -198,16 +275,16 @@
     <div class="col-md-4">
         <div class="panel panel-info">
             <div class="panel-heading">
-                <h3 class="panel-title">Ticket Prices</h3>
+                <h3 class="panel-title">Bảng giá vé</h3>
             </div>
             <div class="panel-body">
-                <h4>Outbound Journey</h4>
+                <h4>Chuyến đi</h4>
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Class</th>
-                            <th>Type</th>
-                            <th>Price</th>
+                            <th>Hạng</th>
+                            <th>Loại</th>
+                            <th>Giá</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -216,7 +293,7 @@
                             <tr>
                                 <td>@price.TicketClass</td>
                                 <td>@price.TicketTypeLabel</td>
-                                <td>@price.PriceWithVAT.ToString("N2")</td>
+                                <td>@price.PriceWithVAT.ToString("N0")đ</td>
                             </tr>
                         }
                     </tbody>
@@ -224,13 +301,13 @@
 
                 @if (Model.IsRoundTrip && returnTicketPrices != null)
                 {
-                    <h4>Return Journey</h4>
+                    <h4>Chuyến về</h4>
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Class</th>
-                                <th>Type</th>
-                                <th>Price</th>
+                                <th>Hạng</th>
+                                <th>Loại</th>
+                                <th>Giá</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -239,7 +316,7 @@
                                 <tr>
                                     <td>@price.TicketClass</td>
                                     <td>@price.TicketTypeLabel</td>
-                                    <td>@price.PriceWithVAT.ToString("N2")</td>
+                                    <td>@price.PriceWithVAT.ToString("N0")đ</td>
                                 </tr>
                             }
                         </tbody>
@@ -278,6 +355,30 @@
             background-color: #f8f8f8;
         }
 
+        .seat.occupied {
+            background-color: #d9534f;
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.7;
+            position: relative;
+        }
+
+        .seat.occupied:before {
+            content: "✗";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .seat.occupied:hover {
+            background-color: #c9302c;
+            opacity: 0.8;
+        }
+
         .seat.selected {
             background-color: #5cb85c;
             color: white;
@@ -308,6 +409,38 @@
     .deck-section {
         margin-bottom: 30px;
     }
+
+    .passenger-form {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: #f9f9f9;
+    }
+
+    .passenger-form h5 {
+        margin-top: 0;
+        color: #337ab7;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 5px;
+    }
+
+    .passenger-form .form-group {
+        margin-bottom: 10px;
+    }
+
+    .passenger-form .form-control {
+        font-size: 14px;
+    }
+
+    #passengerInfoSection {
+        margin-top: 20px;
+    }
+
+    .seat-passenger-indicator {
+        font-weight: bold;
+        color: #337ab7;
+    }
 </style>
 
 @section Scripts {
@@ -316,13 +449,34 @@
             var outboundSelectedSeats = [];
             var returnSelectedSeats = [];
             var passengerCount = @Model.PassengerCount;
+
+            // Debug: Log the data to console
+            console.log('Nations data:', nations);
+            console.log('Ticket types data:', ticketTypes);
+            console.log('Nations type:', typeof nations, 'Length:', nations ? nations.length : 'undefined');
+            console.log('Ticket types type:', typeof ticketTypes, 'Length:', ticketTypes ? ticketTypes.length : 'undefined');
+
+            // Test ticket type options generation immediately
+            setTimeout(function() {
+                console.log('Testing ticket type options generation...');
+                var testOptions = getTicketTypeOptions();
+                console.log('Test options result:', testOptions);
+            }, 100);
             var outboundTicketPrices = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TicketPrices));
             var returnTicketPrices = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(returnTicketPrices ?? new List<FerryBookingSystem.Models.TicketPriceInfo>()));
+            var nations = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Nations ?? new List<object>()));
+            var ticketTypes = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.TicketTypes ?? new List<object>()));
             var outboundTotal = 0;
             var returnTotal = 0;
 
             // Handle outbound seat selection
             $('.seat:not(.return-seat)').click(function() {
+                // Check if seat is occupied
+                if ($(this).data('is-occupied') === 'true' || $(this).hasClass('occupied')) {
+                    alert('Ghế này đã được đặt và không thể chọn.');
+                    return;
+                }
+
                 var seatId = $(this).data('seat-id');
                 var seatName = $(this).data('seat-name');
                 var ticketClass = $(this).data('ticket-class');
@@ -332,40 +486,82 @@
                     // Deselect seat
                     $(this).removeClass('selected');
                     outboundSelectedSeats = outboundSelectedSeats.filter(s => s.seatId !== seatId);
+                    updateSummary();
+                    updatePassengerForms();
+                    checkFormValidity();
                 } else {
                     // Check if max seats already selected
                     if (outboundSelectedSeats.length >= passengerCount) {
-                        alert('You have already selected the maximum number of seats. Please deselect a seat first.');
+                        alert('Bạn đã chọn đủ số ghế tối đa. Vui lòng bỏ chọn một ghế trước.');
                         return;
                     }
 
-                    // Select seat
-                    $(this).addClass('selected');
+                    // Check seat availability before selection
+                    var self = $(this);
+                    $.ajax({
+                        url: '@Url.Action("CheckSeatAvailability", "Booking")',
+                        type: 'POST',
+                        data: {
+                            seatId: seatId,
+                            voyageId: @Model.VoyageId,
+                            departDate: '@Model.DepartDate.ToString("yyyy-MM-dd")'
+                        },
+                        success: function(response) {
+                            if (response.available) {
+                                // Select seat
+                                self.addClass('selected');
 
-                    // Find price for this seat class
-                    var price = outboundTicketPrices.find(p => p.TicketClass === ticketClass);
-                    var priceWithVAT = price ? price.PriceWithVAT : 0;
-                    var ticketTypeId = price ? price.TicketTypeId : 1;
-                    var ticketPriceId = price ? price.TicketPriceId : 1;
+                                // Find adult price for this seat class (default ticket type)
+                                var adultPrice = outboundTicketPrices.find(p => p.TicketClass === ticketClass && p.TicketTypeId === 1);
+                                if (!adultPrice) {
+                                    // Try to find by label if TicketTypeId doesn't match
+                                    adultPrice = outboundTicketPrices.find(p => p.TicketClass === ticketClass &&
+                                        p.TicketTypeLabel && p.TicketTypeLabel.includes('người lớn'));
+                                }
+                                if (!adultPrice) {
+                                    // Fallback to first price for this class
+                                    adultPrice = outboundTicketPrices.find(p => p.TicketClass === ticketClass);
+                                }
+                                var priceWithVAT = adultPrice ? adultPrice.PriceWithVAT : 0;
+                                var ticketTypeId = 1; // Default to Adult
+                                var ticketPriceId = adultPrice ? adultPrice.TicketPriceId : 1;
 
-                    outboundSelectedSeats.push({
-                        seatId: seatId,
-                        positionId: $(this).data('position-id'),
-                        seatName: seatName,
-                        ticketClass: ticketClass,
-                        isVip: isVip,
-                        priceWithVAT: priceWithVAT,
-                        ticketTypeId: ticketTypeId,
-                        ticketPriceId: ticketPriceId
+                                outboundSelectedSeats.push({
+                                    seatId: seatId,
+                                    positionId: self.data('position-id'),
+                                    seatName: seatName,
+                                    ticketClass: ticketClass,
+                                    isVip: isVip,
+                                    priceWithVAT: priceWithVAT,
+                                    ticketTypeId: ticketTypeId,
+                                    ticketPriceId: ticketPriceId
+                                });
+
+                                updateSummary();
+                                updatePassengerForms();
+                                checkFormValidity();
+                            } else {
+                                alert('Ghế này không còn trống. Vui lòng chọn ghế khác.');
+                                // Mark seat as unavailable
+                                self.removeClass('available').addClass('occupied').off('click');
+                            }
+                        },
+                        error: function() {
+                            alert('Lỗi khi kiểm tra tình trạng ghế. Vui lòng thử lại.');
+                        }
                     });
+                    return; // Exit here since we're handling the selection in the AJAX callback
                 }
-
-                updateSummary();
-                checkFormValidity();
             });
 
             // Handle return seat selection
             $('.return-seat').click(function() {
+                // Check if seat is occupied
+                if ($(this).data('is-occupied') === 'true' || $(this).hasClass('occupied')) {
+                    alert('Ghế này đã được đặt và không thể chọn.');
+                    return;
+                }
+
                 var seatId = $(this).data('seat-id');
                 var seatName = $(this).data('seat-name');
                 var ticketClass = $(this).data('ticket-class');
@@ -375,35 +571,75 @@
                     // Deselect seat
                     $(this).removeClass('selected');
                     returnSelectedSeats = returnSelectedSeats.filter(s => s.seatId !== seatId);
+                    updateSummary();
+                    updatePassengerForms();
+                    checkFormValidity();
                 } else {
                     // Check if max seats already selected
                     if (returnSelectedSeats.length >= passengerCount) {
-                        alert('You have already selected the maximum number of seats. Please deselect a seat first.');
+                        alert('Bạn đã chọn đủ số ghế tối đa. Vui lòng bỏ chọn một ghế trước.');
                         return;
                     }
 
-                    // Select seat
-                    $(this).addClass('selected');
+                    // Check seat availability before selection
+                    var self = $(this);
+                    $.ajax({
+                        url: '@Url.Action("CheckSeatAvailability", "Booking")',
+                        type: 'POST',
+                        data: {
+                            seatId: seatId,
+                            voyageId: @(Model.ReturnVoyageId.HasValue ? Model.ReturnVoyageId.Value : 0),
+                            departDate: '@(Model.ReturnDate.HasValue ? Model.ReturnDate.Value.ToString("yyyy-MM-dd") : DateTime.Now.ToString("yyyy-MM-dd"))'
+                        },
+                        success: function(response) {
+                            if (response.available) {
+                                // Select seat
+                                self.addClass('selected');
 
-                    // Find price for this seat class
-                    var price = returnTicketPrices.find(p => p.TicketClass === ticketClass);
-                    var priceWithVAT = price ? price.PriceWithVAT : 0;
-                    var ticketTypeId = price ? price.TicketTypeId : 1;
-                    var ticketPriceId = price ? price.TicketPriceId : 1;
+                                // Find adult price for this seat class (default ticket type)
+                                var adultPrice = returnTicketPrices.find(p => p.TicketClass === ticketClass && p.TicketTypeId === 1);
+                                if (!adultPrice) {
+                                    // Try to find by label if TicketTypeId doesn't match
+                                    adultPrice = returnTicketPrices.find(p => p.TicketClass === ticketClass &&
+                                        p.TicketTypeLabel && p.TicketTypeLabel.includes('người lớn'));
+                                }
+                                if (!adultPrice) {
+                                    // Fallback to first price for this class
+                                    adultPrice = returnTicketPrices.find(p => p.TicketClass === ticketClass);
+                                }
+                                var priceWithVAT = adultPrice ? adultPrice.PriceWithVAT : 0;
+                                var ticketTypeId = 1; // Default to Adult
+                                var ticketPriceId = adultPrice ? adultPrice.TicketPriceId : 1;
 
-                    returnSelectedSeats.push({
-                        seatId: seatId,
-                        positionId: $(this).data('position-id'),
-                        seatName: seatName,
-                        ticketClass: ticketClass,
-                        isVip: isVip,
-                        priceWithVAT: priceWithVAT,
-                        ticketTypeId: ticketTypeId,
-                        ticketPriceId: ticketPriceId
+                                returnSelectedSeats.push({
+                                    seatId: seatId,
+                                    positionId: self.data('position-id'),
+                                    seatName: seatName,
+                                    ticketClass: ticketClass,
+                                    isVip: isVip,
+                                    priceWithVAT: priceWithVAT,
+                                    ticketTypeId: ticketTypeId,
+                                    ticketPriceId: ticketPriceId
+                                });
+
+                                updateSummary();
+                                updatePassengerForms();
+                                checkFormValidity();
+                            } else {
+                                alert('Ghế này không còn trống. Vui lòng chọn ghế khác.');
+                                // Mark seat as unavailable
+                                self.removeClass('available').addClass('occupied').off('click');
+                            }
+                        },
+                        error: function() {
+                            alert('Lỗi khi kiểm tra tình trạng ghế. Vui lòng thử lại.');
+                        }
                     });
+                    return; // Exit here since we're handling the selection in the AJAX callback
                 }
 
                 updateSummary();
+                updatePassengerForms();
                 checkFormValidity();
             });
 
@@ -415,13 +651,14 @@
                 outboundTotal = 0;
 
                 if (outboundSelectedSeats.length === 0) {
-                    outboundHtml = '<tr><td colspan="3">No seats selected</td></tr>';
+                    outboundHtml = '<tr><td colspan="3">Chưa chọn ghế nào</td></tr>';
                 } else {
                     outboundSelectedSeats.forEach(function(seat) {
+                        var ticketTypeName = getTicketTypeName(seat.ticketTypeId);
                         outboundHtml += '<tr>' +
                             '<td>' + seat.seatName + '</td>' +
-                            '<td>' + seat.ticketClass + (seat.isVip ? ' (VIP)' : '') + '</td>' +
-                            '<td>' + seat.priceWithVAT.toFixed(2) + '</td>' +
+                            '<td>' + seat.ticketClass + (seat.isVip ? ' (VIP)' : '') + '<br><small class="text-muted">' + ticketTypeName + '</small></td>' +
+                            '<td>' + seat.priceWithVAT.toFixed(2) + ' VND</td>' +
                             '</tr>';
                         outboundTotal += seat.priceWithVAT;
                     });
@@ -436,13 +673,14 @@
                 returnTotal = 0;
 
                 if (returnSelectedSeats.length === 0) {
-                    returnHtml = '<tr><td colspan="3">No seats selected</td></tr>';
+                    returnHtml = '<tr><td colspan="3">Chưa chọn ghế nào</td></tr>';
                 } else {
                     returnSelectedSeats.forEach(function(seat) {
+                        var ticketTypeName = getTicketTypeName(seat.ticketTypeId);
                         returnHtml += '<tr>' +
                             '<td>' + seat.seatName + '</td>' +
-                            '<td>' + seat.ticketClass + (seat.isVip ? ' (VIP)' : '') + '</td>' +
-                            '<td>' + seat.priceWithVAT.toFixed(2) + '</td>' +
+                            '<td>' + seat.ticketClass + (seat.isVip ? ' (VIP)' : '') + '<br><small class="text-muted">' + ticketTypeName + '</small></td>' +
+                            '<td>' + seat.priceWithVAT.toFixed(2) + ' VND</td>' +
                             '</tr>';
                         returnTotal += seat.priceWithVAT;
                     });
@@ -453,11 +691,202 @@
 
                 // Update grand total
                 var grandTotal = outboundTotal + returnTotal;
-                $('#grandTotal').text(grandTotal.toFixed(2));
+                $('#grandTotal').text(grandTotal.toFixed(2) + ' VND');
 
                 // Update hidden fields
                 $('#selectedSeats').val(outboundSelectedSeats.map(s => s.seatId).join(','));
                 $('#returnSelectedSeats').val(returnSelectedSeats.map(s => s.seatId).join(','));
+            }
+
+            // Update passenger information forms
+            function updatePassengerForms() {
+                var totalSeats = outboundSelectedSeats.length + returnSelectedSeats.length;
+
+                if (totalSeats > 0) {
+                    $('#passengerInfoSection').show();
+                    generateOutboundPassengerForms();
+                    if (@Model.IsRoundTrip.ToString().ToLower()) {
+                        generateReturnPassengerForms();
+                    }
+                } else {
+                    $('#passengerInfoSection').hide();
+                }
+            }
+
+            // Generate passenger forms for outbound journey
+            function generateOutboundPassengerForms() {
+                var container = $('#outboundPassengerContainer');
+                container.empty();
+
+                outboundSelectedSeats.forEach(function(seat, index) {
+                    var formHtml = createPassengerForm(seat, index, 'outbound');
+                    container.append(formHtml);
+                });
+
+                if (outboundSelectedSeats.length > 0) {
+                    $('#outboundPassengerForms').show();
+                } else {
+                    $('#outboundPassengerForms').hide();
+                }
+            }
+
+            // Generate passenger forms for return journey
+            function generateReturnPassengerForms() {
+                var container = $('#returnPassengerContainer');
+                container.empty();
+
+                returnSelectedSeats.forEach(function(seat, index) {
+                    var formHtml = createPassengerForm(seat, index, 'return');
+                    container.append(formHtml);
+                });
+
+                if (returnSelectedSeats.length > 0) {
+                    $('#returnPassengerForms').show();
+                } else {
+                    $('#returnPassengerForms').hide();
+                }
+            }
+
+            // Create individual passenger form
+            function createPassengerForm(seat, index, tripType) {
+                var prefix = tripType === 'outbound' ? 'Passengers' : 'ReturnPassengers';
+                var seatInfo = seat.seatName + ' (' + seat.ticketClass + ')';
+
+                console.log('Creating passenger form for seat:', seat, 'index:', index, 'tripType:', tripType);
+                var ticketTypeOptions = getTicketTypeOptions();
+                console.log('Ticket type options for form:', ticketTypeOptions);
+
+                return `
+                    <div class="passenger-form">
+                        <h5><span class="seat-passenger-indicator">Ghế ${seatInfo}</span> - Hành khách ${index + 1}</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Họ và tên *</label>
+                                    <input type="text" class="form-control" name="${prefix}[${index}].FullName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Giới tính *</label>
+                                    <select class="form-control" name="${prefix}[${index}].Gender" required>
+                                        <option value="">Chọn</option>
+                                        <option value="1">Nam</option>
+                                        <option value="0">Nữ</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Ngày sinh *</label>
+                                    <input type="date" class="form-control" name="${prefix}[${index}].DateOfBirth" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Loại vé *</label>
+                                    <select class="form-control ticket-type-select" name="${prefix}[${index}].TicketTypeId" data-seat-index="${index}" data-trip-type="${tripType}" required>
+                                        <option value="1" selected>Người lớn</option>
+                                        <option value="2">Trẻ em (6-11 tuổi)</option>
+                                        <option value="3">Em bé (Dưới 6 tuổi)</option>
+                                        <option value="4">Cao tuổi (Trên 60)</option>
+                                        <option value="5">Học sinh</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Số CMND/CCCD *</label>
+                                    <input type="text" class="form-control" name="${prefix}[${index}].IdNumber" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Nơi sinh</label>
+                                    <input type="text" class="form-control" name="${prefix}[${index}].PlaceOfBirth">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Quốc tịch *</label>
+                                    <select class="form-control" name="${prefix}[${index}].NationalityId" required>
+                                        ${getNationalityOptions()}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden fields for seat information -->
+                        <input type="hidden" name="${prefix}[${index}].SeatId" value="${seat.seatId}">
+                        <input type="hidden" name="${prefix}[${index}].PositionId" value="${seat.positionId}">
+                        <input type="hidden" name="${prefix}[${index}].SeatName" value="${seat.seatName}">
+                        <input type="hidden" name="${prefix}[${index}].TicketClass" value="${seat.ticketClass}">
+                        <input type="hidden" name="${prefix}[${index}].Price" value="${seat.priceWithVAT}">
+                        <input type="hidden" name="${prefix}[${index}].TicketPriceId" value="${seat.ticketPriceId}">
+                    </div>
+                `;
+            }
+
+            // Generate nationality options
+            function getNationalityOptions() {
+                var options = '<option value="">Chọn quốc tịch</option>';
+                if (nations && nations.length > 0) {
+                    nations.forEach(function(nation) {
+                        // Handle different possible property names from API
+                        var nationId = nation.NationId || nation.Id || nation.id;
+                        var nationName = nation.Label || nation.NationNm || nation.Name || nation.name || nation.NationName;
+                        if (nationId && nationName) {
+                            options += `<option value="${nationId}">${nationName}</option>`;
+                        }
+                    });
+                } else {
+                    // Fallback options if API data is not available
+                    options += '<option value="1">Việt Nam</option>';
+                    options += '<option value="2">Mỹ</option>';
+                    options += '<option value="3">Anh</option>';
+                    options += '<option value="4">Trung Quốc</option>';
+                    options += '<option value="5">Nhật Bản</option>';
+                    options += '<option value="6">Hàn Quốc</option>';
+                    options += '<option value="7">Khác</option>';
+                }
+                return options;
+            }
+
+            // Generate ticket type options with Adult selected by default
+            function getTicketTypeOptions() {
+                console.log('Generating ticket type options. TicketTypes data:', ticketTypes);
+
+                var options = '';
+                var hasApiData = false;
+
+                if (ticketTypes && ticketTypes.length > 0) {
+                    console.log('Using API ticket types data');
+                    ticketTypes.forEach(function(ticketType) {
+                        // Handle different possible property names
+                        var typeId = ticketType.TicketTypeId || ticketType.Id || ticketType.id;
+                        var typeName = ticketType.TicketTypeName || ticketType.Name || ticketType.name;
+                        if (typeId && typeName) {
+                            var selected = typeId == 1 ? ' selected' : ''; // Default to Adult
+                            options += `<option value="${typeId}"${selected}>${typeName}</option>`;
+                            hasApiData = true;
+                        }
+                    });
+                }
+
+                if (!hasApiData) {
+                    console.log('Using fallback ticket types');
+                    // Always provide fallback options
+                    options += '<option value="1" selected>Người lớn</option>';
+                    options += '<option value="2">Trẻ em (6-11 tuổi)</option>';
+                    options += '<option value="3">Em bé (Dưới 6 tuổi)</option>';
+                    options += '<option value="4">Cao tuổi (Trên 60)</option>';
+                    options += '<option value="5">Học sinh</option>';
+                }
+
+                console.log('Generated options:', options);
+                return options;
             }
 
             // Check if form can be submitted
@@ -466,8 +895,250 @@
                 var outboundValid = outboundSelectedSeats.length === passengerCount;
                 var returnValid = isRoundTrip ? returnSelectedSeats.length === passengerCount : true;
 
-                $('#continueButton').prop('disabled', !(outboundValid && returnValid));
+                // Check if passenger information is filled (basic check)
+                var passengerInfoValid = true;
+                if (outboundSelectedSeats.length > 0 || returnSelectedSeats.length > 0) {
+                    var requiredFields = $('#passengerInfoSection input[required], #passengerInfoSection select[required]');
+                    var emptyFields = requiredFields.filter(function() { return $(this).val() === ''; });
+                    passengerInfoValid = emptyFields.length === 0;
+
+                    // Debug logging
+                    console.log('=== FORM VALIDATION DEBUG ===');
+                    console.log('Outbound seats selected:', outboundSelectedSeats.length, '/ Required:', passengerCount);
+                    console.log('Return seats selected:', returnSelectedSeats.length, '/ Required:', isRoundTrip ? passengerCount : 'N/A');
+                    console.log('Total required fields found:', requiredFields.length);
+                    console.log('Empty required fields:', emptyFields.length);
+                    console.log('Outbound valid:', outboundValid);
+                    console.log('Return valid:', returnValid);
+                    console.log('Passenger info valid:', passengerInfoValid);
+
+                    if (emptyFields.length > 0) {
+                        console.log('Empty fields:');
+                        emptyFields.each(function() {
+                            console.log('- Field:', $(this).attr('name'), 'Type:', $(this).prop('tagName'), 'Value:', $(this).val());
+                        });
+                    }
+                }
+
+                var formValid = outboundValid && returnValid && passengerInfoValid;
+                console.log('Form valid overall:', formValid);
+                $('#continueButton').prop('disabled', !formValid);
             }
+
+            // Handle ticket type changes to update pricing
+            $(document).on('change', '.ticket-type-select', function() {
+                var seatIndex = $(this).data('seat-index');
+                var tripType = $(this).data('trip-type');
+                var selectedTicketTypeId = parseInt($(this).val());
+
+                if (selectedTicketTypeId) {
+                    // Find the corresponding seat and update its ticket type and price
+                    if (tripType === 'outbound' && outboundSelectedSeats[seatIndex]) {
+                        var seat = outboundSelectedSeats[seatIndex];
+                        seat.ticketTypeId = selectedTicketTypeId;
+
+                        // Update price based on ticket type
+                        var newPrice = calculatePriceForTicketType(seat.ticketClass, selectedTicketTypeId, 'outbound');
+                        seat.priceWithVAT = newPrice;
+
+                        // Find the correct TicketPriceId for this combination
+                        var priceInfo = outboundTicketPrices.find(p => p.TicketClass === seat.ticketClass && p.TicketTypeId === selectedTicketTypeId);
+                        if (!priceInfo) {
+                            // Try to find by label
+                            if (selectedTicketTypeId === 1) {
+                                priceInfo = outboundTicketPrices.find(p => p.TicketClass === seat.ticketClass &&
+                                    p.TicketTypeLabel && p.TicketTypeLabel.includes('người lớn'));
+                            } else if (selectedTicketTypeId === 2) {
+                                priceInfo = outboundTicketPrices.find(p => p.TicketClass === seat.ticketClass &&
+                                    p.TicketTypeLabel && p.TicketTypeLabel.includes('trẻ em'));
+                            } else if (selectedTicketTypeId === 4) {
+                                priceInfo = outboundTicketPrices.find(p => p.TicketClass === seat.ticketClass &&
+                                    p.TicketTypeLabel && p.TicketTypeLabel.includes('Cao Tuổi'));
+                            }
+                        }
+                        if (priceInfo) {
+                            seat.ticketPriceId = priceInfo.TicketPriceId;
+                            $(`input[name="Passengers[${seatIndex}].TicketPriceId"]`).val(priceInfo.TicketPriceId);
+                        }
+
+                        // Update the hidden price field in the form
+                        $(`input[name="Passengers[${seatIndex}].Price"]`).val(newPrice);
+
+                        updateSummary();
+
+                    } else if (tripType === 'return' && returnSelectedSeats[seatIndex]) {
+                        var seat = returnSelectedSeats[seatIndex];
+                        seat.ticketTypeId = selectedTicketTypeId;
+
+                        // Update price based on ticket type
+                        var newPrice = calculatePriceForTicketType(seat.ticketClass, selectedTicketTypeId, 'return');
+                        seat.priceWithVAT = newPrice;
+
+                        // Find the correct TicketPriceId for this combination
+                        var priceInfo = returnTicketPrices.find(p => p.TicketClass === seat.ticketClass && p.TicketTypeId === selectedTicketTypeId);
+                        if (!priceInfo) {
+                            // Try to find by label
+                            if (selectedTicketTypeId === 1) {
+                                priceInfo = returnTicketPrices.find(p => p.TicketClass === seat.ticketClass &&
+                                    p.TicketTypeLabel && p.TicketTypeLabel.includes('người lớn'));
+                            } else if (selectedTicketTypeId === 2) {
+                                priceInfo = returnTicketPrices.find(p => p.TicketClass === seat.ticketClass &&
+                                    p.TicketTypeLabel && p.TicketTypeLabel.includes('trẻ em'));
+                            } else if (selectedTicketTypeId === 4) {
+                                priceInfo = returnTicketPrices.find(p => p.TicketClass === seat.ticketClass &&
+                                    p.TicketTypeLabel && p.TicketTypeLabel.includes('Cao Tuổi'));
+                            }
+                        }
+                        if (priceInfo) {
+                            seat.ticketPriceId = priceInfo.TicketPriceId;
+                            $(`input[name="ReturnPassengers[${seatIndex}].TicketPriceId"]`).val(priceInfo.TicketPriceId);
+                        }
+
+                        // Update the hidden price field in the form
+                        $(`input[name="ReturnPassengers[${seatIndex}].Price"]`).val(newPrice);
+
+                        updateSummary();
+                    }
+                }
+            });
+
+            // Calculate price based on ticket type using API prices
+            function calculatePriceForTicketType(ticketClass, ticketTypeId, tripType) {
+                var basePrices = tripType === 'outbound' ? outboundTicketPrices : returnTicketPrices;
+
+                console.log('Calculating price for:', ticketClass, 'TicketTypeId:', ticketTypeId, 'TripType:', tripType);
+                console.log('Available prices:', basePrices);
+
+                // First try to find exact match by TicketClass and TicketTypeId
+                var exactPrice = basePrices.find(p => p.TicketClass === ticketClass && p.TicketTypeId === ticketTypeId);
+                if (exactPrice) {
+                    console.log('Found exact price:', exactPrice.PriceWithVAT);
+                    return exactPrice.PriceWithVAT;
+                }
+
+                // If no exact match, try to find by TicketClass and map ticket types
+                // Based on your API data:
+                // TicketTypeId 1 = Adult (Vé người lớn)
+                // TicketTypeId 2 = Child (Vé trẻ em)
+                // TicketTypeId 4 = Senior (Vé Cao Tuổi)
+
+                var mappedPrice = null;
+                if (ticketTypeId === 1) {
+                    // Adult - look for "Vé người lớn" or TicketTypeId 1
+                    mappedPrice = basePrices.find(p => p.TicketClass === ticketClass &&
+                        (p.TicketTypeId === 1 || (p.TicketTypeLabel && p.TicketTypeLabel.includes('người lớn'))));
+                } else if (ticketTypeId === 2) {
+                    // Child - look for "Vé trẻ em" or TicketTypeId 2
+                    mappedPrice = basePrices.find(p => p.TicketClass === ticketClass &&
+                        (p.TicketTypeId === 2 || (p.TicketTypeLabel && p.TicketTypeLabel.includes('trẻ em'))));
+                } else if (ticketTypeId === 4) {
+                    // Senior - look for "Vé Cao Tuổi" or TicketTypeId 4
+                    mappedPrice = basePrices.find(p => p.TicketClass === ticketClass &&
+                        (p.TicketTypeId === 4 || (p.TicketTypeLabel && p.TicketTypeLabel.includes('Cao Tuổi'))));
+                } else if (ticketTypeId === 3) {
+                    // Infant - use child price if available, otherwise 10% of adult
+                    mappedPrice = basePrices.find(p => p.TicketClass === ticketClass &&
+                        (p.TicketTypeId === 2 || (p.TicketTypeLabel && p.TicketTypeLabel.includes('trẻ em'))));
+                    if (mappedPrice) {
+                        console.log('Using child price for infant with 50% discount');
+                        return Math.round(mappedPrice.PriceWithVAT * 0.5);
+                    }
+                } else if (ticketTypeId === 5) {
+                    // Student - use adult price with 10% discount
+                    mappedPrice = basePrices.find(p => p.TicketClass === ticketClass &&
+                        (p.TicketTypeId === 1 || (p.TicketTypeLabel && p.TicketTypeLabel.includes('người lớn'))));
+                    if (mappedPrice) {
+                        console.log('Using adult price for student with 10% discount');
+                        return Math.round(mappedPrice.PriceWithVAT * 0.9);
+                    }
+                }
+
+                if (mappedPrice) {
+                    console.log('Found mapped price:', mappedPrice.PriceWithVAT);
+                    return mappedPrice.PriceWithVAT;
+                }
+
+                // Fallback to first available price for this class
+                var fallbackPrice = basePrices.find(p => p.TicketClass === ticketClass);
+                if (fallbackPrice) {
+                    console.log('Using fallback price:', fallbackPrice.PriceWithVAT);
+                    return fallbackPrice.PriceWithVAT;
+                }
+
+                console.log('No price found, returning 0');
+                return 0;
+            }
+
+            // Get price multiplier for different ticket types
+            function getTicketTypeMultiplier(ticketTypeId) {
+                switch (ticketTypeId) {
+                    case 1: return 1.0;    // Adult - 100%
+                    case 2: return 0.75;   // Child (6-11 years) - 75%
+                    case 3: return 0.1;    // Infant (Under 6) - 10%
+                    case 4: return 0.85;   // Senior (Over 60) - 85%
+                    case 5: return 0.9;    // Student - 90%
+                    default: return 1.0;   // Default to adult price
+                }
+            }
+
+            // Get ticket type name by ID
+            function getTicketTypeName(ticketTypeId) {
+                if (ticketTypes && ticketTypes.length > 0) {
+                    var ticketType = ticketTypes.find(t => (t.TicketTypeId || t.Id || t.id) == ticketTypeId);
+                    if (ticketType) {
+                        return ticketType.TicketTypeName || ticketType.Name || ticketType.name;
+                    }
+                }
+
+                // Fallback names
+                switch (ticketTypeId) {
+                    case 1: return 'Người lớn';
+                    case 2: return 'Trẻ em (6-11 tuổi)';
+                    case 3: return 'Em bé (Dưới 6 tuổi)';
+                    case 4: return 'Cao tuổi (Trên 60)';
+                    case 5: return 'Học sinh';
+                    default: return 'Người lớn';
+                }
+            }
+
+            // Add validation for passenger forms
+            $(document).on('input change', '#passengerInfoSection input, #passengerInfoSection select', function() {
+                checkFormValidity();
+            });
+
+            // Add form submission debugging
+            $('#seatSelectionForm').on('submit', function(e) {
+                console.log('=== FORM SUBMISSION DEBUG ===');
+                console.log('Form submission attempted');
+
+                // Check all form data
+                var formData = new FormData(this);
+                console.log('Form data:');
+                for (var pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
+
+                // Check if button is disabled
+                var buttonDisabled = $('#continueButton').prop('disabled');
+                console.log('Submit button disabled:', buttonDisabled);
+
+                if (buttonDisabled) {
+                    e.preventDefault();
+                    console.log('Form submission prevented - button is disabled');
+                    alert('Vui lòng điền đầy đủ các trường bắt buộc trước khi gửi.');
+                    return false;
+                }
+
+                console.log('Form submission proceeding...');
+            });
+
+            // Add a manual check button for debugging
+            $('<button type="button" class="btn btn-info" style="margin-left: 10px;">Kiểm tra form</button>')
+                .insertAfter('#continueButton')
+                .click(function() {
+                    checkFormValidity();
+                    console.log('Manual form validation check completed - see console for details');
+                });
         });
     </script>
 }
